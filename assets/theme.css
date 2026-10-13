@@ -373,6 +373,7 @@ Version: 1.0
    }
    .t4s-site-nav__icons.is--hover2 .t4s-site-nav__icon svg.t4s-icon {
       transition: 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+      font-style: normal;
    }
    .t4s-site-nav__icons.is--hover2 .t4s-site-nav__icon:hover svg.t4s-icon {
       transform: scale(1.15);

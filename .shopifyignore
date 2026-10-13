@@ -1,0 +1,7 @@
+# Shopify CLI 上传时忽略的文件（与 .gitignore 互补，CLI 只认这个）
+.cursor/
+.shopify/
+theme-check-results.json
+PERFORMANCE-SEO-GEO.md
+*.log
+node_modules/

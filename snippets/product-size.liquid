@@ -1,0 +1,35 @@
+{% comment %} <div class="t4s-product-sizes">
+  <span class="t4s-truncate t4s-d-block t4s-w-100">
+    {% for size in size_variants %}{% if settings.show_size_type == '2' %}{% unless size_variants_avai contains size %}{% continue %}{% endunless %}{% endif %}
+      <span{% unless size_variants_avai contains size %} class="t4s-product-sizes--sold-out"{% endunless %}>{{ size }}</span>
+    {% endfor %}
+  </span>
+</div> {% endcomment %}
+<div class="t4s-product-sizes">
+  <span class="t4s-truncate t4s-d-block t4s-w-100">
+    {%- for option in product.options_with_values -%}
+      {%- liquid
+        assign option_downcase = option.name | downcase
+        if get_size contains option_downcase
+          assign is_size = true
+        else
+          continue
+        endif
+      -%}
+      {%- if is_size -%}
+        {%- for value in option.values -%}
+          {%- liquid
+            unless value.variant
+              continue
+            endunless
+            if settings.show_size_type == '2' and value.variant.available == false
+              continue
+            endif
+          -%}
+          <span {%- unless value.variant.available %} class="t4s-product-sizes--sold-out"{% endunless %}>{{ value }}</span>
+        {%- endfor -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+  </span>
+</div>

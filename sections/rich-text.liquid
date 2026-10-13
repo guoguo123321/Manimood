@@ -1,0 +1,553 @@
+{% liquid
+  assign se_stts = section.settings
+  assign stt_layout = se_stts.layout
+  if stt_layout == 't4s-container-wrap'
+    assign html_layout = '<div class="t4s-container">__</div>' | split: '__'
+  elsif stt_layout == 'custom-container'
+    assign html_layout = '<div class="custom-container">__</div>' | split: '__'
+  else
+    assign html_layout = '__' | split: '__'
+  endif
+%}
+{{ 'section.css' | asset_url | stylesheet_tag }}
+{{ 'general-block.css' | asset_url | stylesheet_tag }}
+{%- if se_stts.layout == 'custom-container' %}
+<style>
+  .{{ section.id }} .custom-container{
+    max-width:{{ se_stts.custom_container }};
+    margin: 0 auto;
+  }
+</style>
+{%- endif -%}
+<div class="{{ section.id }} rich-text-box t4s-section-inner" {% render 'section_style', se_stts: se_stts -%}>
+  {{- html_layout[0] -}}
+  <div class="rich-text-content {{ se_stts.content_align }}">
+    {%- for block in section.blocks -%}
+      {%- assign bk_stts = block.settings -%}
+      {%- assign block_animation = bk_stts.animation | default: 'none' -%}
+      {%- case block.type -%}
+        {%- when 'custom_text' -%}
+          {%- if bk_stts.text != blank -%}
+            <{{ bk_stts.tag }}
+              data-lh="{{ bk_stts.text_lh_mb }}"
+              data-lh-md="{{ bk_stts.text_lh }}"
+              data-lh-lg="{{ bk_stts.text_lh }}"
+              class="rich-text-text t4s-bl-item t4s-animation-{{ block_animation }} t4s-text-bl t4s-fnt-fm-{{ bk_stts.fontf }} t4s-font-italic-{{ bk_stts.font_italic }} t4s-hidden-mobile-{{ bk_stts.hidden_mobile }} t4s-br-mb-{{ bk_stts.remove_br_tag }} t4s-text-shadow-{{ bk_stts.text_shadow }}"
+              id="b_{{ block.id }}"
+              timeline
+              hdt-reveal="slide-in"
+              {{ block.shopify_attributes }}
+              {%- render 'bk_cus_style', type: 'custom_text', bk_stts: bk_stts -%}
+            >{{ bk_stts.text | newline_to_br }}</{{ bk_stts.tag }}>
+          {%- endif -%}
+
+        {%- when 'btn' -%}
+          {%- if bk_stts.head_btn_label != blank -%}
+            {%- liquid
+              assign button_style = bk_stts.button_style | default: 'default'
+              assign button_display = bk_stts.button_display | default: 'inline'
+              assign btn_has_img = false
+              if bk_stts.show_btn_image and bk_stts.btn_image != blank
+                assign btn_has_img = true
+              endif
+              assign pri_cl_op = bk_stts.pri_cl_opacity | default: 100 | divided_by: 100.0
+              assign pill_bg = bk_stts.pri_cl | default: '#00ADEF' | color_modify: 'alpha', pri_cl_op
+              assign pill_cl = bk_stts.second_cl | default: '#FFFFFF'
+              assign hover_bg = bk_stts.pri_cl_hover | default: '#171932'
+              assign hover_cl = bk_stts.second_cl_hover | default: '#FFFFFF'
+              assign btn_hidden_mb = bk_stts.hidden_mobile | default: false
+              if bk_stts.head_btn_hidden_mb
+                assign btn_hidden_mb = true
+              endif
+            -%}
+            {%- capture btn_inner -%}
+              {%- if btn_has_img -%}
+                <img class="rich-text-btn__img" src="{{ bk_stts.btn_image | image_url: width: 48 }}" alt="" width="{{ bk_stts.btn_image_w | default: 18 }}" height="{{ bk_stts.btn_image_w | default: 18 }}" loading="lazy">
+              {%- endif -%}
+              <span class="rich-text-btn__text">{{ bk_stts.head_btn_label }}</span>
+              {%- if bk_stts.button_icon_w > 0 or bk_stts.head_btn_icon -%}
+                <svg class="rich-text-btn__icon" viewBox="0 0 14 10" width="14" aria-hidden="true" focusable="false"><use xlink:href="#t4s-icon-btn"></use></svg>
+              {%- endif -%}
+            {%- endcapture -%}
+            {%- capture btn_style -%}
+              --pri-cl:{{ pill_bg }};--second-cl:{{ pill_cl }};--pri-cl-hover:{{ hover_bg }};--second-cl-hover:{{ hover_cl }};--link-hover-bg:{{ hover_bg }};--link-hover-cl:{{ hover_cl }};--button-fs:{{ bk_stts.fsbutton | default: 16 }}px;--button-fw:{{ bk_stts.fwbutton | default: 500 }};--button-ls:{{ bk_stts.button_ls | default: 0 }}px;--button-mh:{{ bk_stts.button_mh | default: 48 }}px;--button-bdr:{{ bk_stts.button_bdr | default: 50 }}px;--button-pd-lr:{{ bk_stts.button_pd_lr | default: 38 }}px;--button-icon-w:{{ bk_stts.button_icon_w | default: 14 }}px;--btn-img-w:{{ bk_stts.btn_image_w | default: 18 }}px;--btn-img-gap:9px;--button-fs-mb:{{ bk_stts.fsbutton_mb | default: 14 }}px;--button-mh-mb:{{ bk_stts.button_mh_mb | default: 40 }}px;--button-pd-lr-mb:{{ bk_stts.button_pd_lr_mb | default: 20 }}px;--button-ls-mb:{{ bk_stts.button_ls_mb | default: 0 }}px;--button-icon-w-mb:{{ bk_stts.button_icon_w_mb | default: 14 }}px;--button-mgb:{{ bk_stts.button_mgb | default: 0 }}px;--button-mgr:{{ bk_stts.button_mgr | default: 0 }}px;--button-mgb-mb:{{ bk_stts.button_mgb_mb | default: 0 }}px;--button-mgr-mb:{{ bk_stts.button_mgr_mb | default: 0 }}px;--animation-order:{{ forloop.index0 }};
+            {%- endcapture -%}
+            <div
+              class="rich-text-btn-wrap"
+              style="--space-top:{{ bk_stts.space_top }}px;--space-bottom:{{ bk_stts.space_bottom }}px;--space-top-mb:{{ bk_stts.space_top_mb }}px;--space-bottom-mb:{{ bk_stts.space_bottom_mb }}px;"
+              {{ block.shopify_attributes }}
+            >
+              {%- if bk_stts.head_btn_url != blank -%}
+                <a
+                  class="rich-text-btn custom-link t4s-fnt-fm-{{ bk_stts.fontf | default: 'inherit' }} t4s-btn-style-{{ button_style }} t4s-hidden-mobile-{{ btn_hidden_mb }} rich-text-btn--{{ button_display }}{% if btn_has_img %} rich-text-btn--has-img{% endif %}"
+                  href="{{ bk_stts.head_btn_url }}"
+                  target="{{ bk_stts.target_link | default: '_self' }}"
+                  timeline
+                  hdt-reveal="slide-in"
+                  style="{{ btn_style }}"
+                >{{ btn_inner }}</a>
+              {%- else -%}
+                <span
+                  class="rich-text-btn custom-link is-disabled t4s-fnt-fm-{{ bk_stts.fontf | default: 'inherit' }} t4s-btn-style-{{ button_style }} t4s-hidden-mobile-{{ btn_hidden_mb }} rich-text-btn--{{ button_display }}{% if btn_has_img %} rich-text-btn--has-img{% endif %}"
+                  timeline
+                  hdt-reveal="slide-in"
+                  style="{{ btn_style }}"
+                >{{ btn_inner }}</span>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+
+        {%- when 'image' -%}
+          {%- assign image = bk_stts.image_child -%}
+          {%- assign block_animation = bk_stts.animation | default: 'none' -%}
+          <div
+            class="rich-text-image t4s-animation-{{ block_animation }} t4s-hidden-mobile-{{ bk_stts.hidden_mobile }}{% if bk_stts.img_width > 0 %} has-w{% endif %}{% if bk_stts.img_width_mb > 0 %} has-w-mb{% endif %}"
+            style="--space-top:{{ bk_stts.space_top }}px;--space-top-mb:{{ bk_stts.space_top_mb }}px;--mgb:{{ bk_stts.mgb }}px;--mgb-mb:{{ bk_stts.mgb_mb }}px;{% if bk_stts.img_width > 0 %}--img-w:{{ bk_stts.img_width }}px;{% endif %}{% if bk_stts.img_width_mb > 0 %}--img-w-mb:{{ bk_stts.img_width_mb }}px;{% endif %}"
+            {{ block.shopify_attributes }}
+          >
+            {%- if image != blank -%}
+              {{
+                image
+                | image_url: width: 1400
+                | image_tag:
+                  class: 'rich-text-image__img',
+                  widths: '345, 637, 800, 1000, 1274, 1400',
+                  sizes: '(max-width: 767px) 345px, 637px',
+                  loading: 'lazy',
+                  alt: image.alt
+              }}
+            {%- else -%}
+              {{ 'lifestyle-2' | placeholder_svg_tag: 'rich-text-image__img t4s-placeholder-svg' }}
+            {%- endif -%}
+          </div>
+      {%- endcase -%}
+    {%- endfor -%}
+  </div>
+  {{- html_layout[1] -}}
+</div>
+{% schema %}
+{
+  "name": "Rich Text",
+  "class": "shopify-rich-text",
+  "tag": "section",
+  "settings": [
+    {"type": "select","id": "layout","label": "layout","default":"t4s-container-wrap",
+      "options": [
+        {"label":"Wrapped container","value": "t4s-container-wrap"},
+        {"label":"Full width","value": "t4s-container-fluid"},
+        {"label":"custom container","value": "custom-container"}
+      ]
+    },
+    {"type": "text","id": "custom_container","label": "custom container","default": "1200px","visible_if": "{{ section.settings.layout == 'custom-container' }}"},
+    {"type": "select","id": "content_align","label": "Content align","default": "t4s-text-center",
+      "options": [
+        {"value": "t4s-text-start","label": "Left"},
+        {"value": "t4s-text-center","label": "Center"},
+        {"value": "t4s-text-end","label": "Right"}
+      ]
+    },
+
+    {"type":"color","id":"cl_bg","label":"bg_color","default":"#FFFFFF"},
+    {"type": "color_background","id": "cl_bg_gradient","label": "Background gradient"},
+
+    {"type": "header","content": "+ Design pc options"},
+    {"type": "text","id": "mg","label": "Margin","info":"Margin top, margin right, margin bottom, margin left. If you not use to blank","default": "0px,0px,0px,0px"},
+    {"type": "text","id": "pd","label": "Padding","info":"Padding top, padding right, padding bottom, padding left. If you not use to blank","default": "0px,0px,60px,0px"},
+
+    {"type": "header","content": "+ Design Tablet Options"},
+    {"type": "text","id": "mg_tb","label": "Margin","default": "0px,0px,0px,0px"},
+    {"type": "text","id": "pd_tb","label": "Padding","default": "0px,0px,30px,0px"},
+
+    {"type": "header","content": "+ Design mobile options"},
+    {"type": "text","id": "mg_mb","label": "Margin","default": "0px,0px,0px,0px"},
+    {"type": "text","id": "pd_mb","label": "Padding","default": "0px,0px,20px,0px"}
+  ],
+  "blocks": [
+    {
+      "type": "custom_text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Input text",
+          "default": "Text",
+          "info": "If you want to line break, please add a <br> tag in the text"
+        },
+        {
+          "type": "checkbox",
+          "id": "remove_br_tag",
+          "label": "Remove <br> tag on mobile",
+          "default": false
+        },
+        {
+          "type": "select",
+          "id": "tag",
+          "label": "Html tag",
+          "default": "p",
+          "options": [
+            {"value": "h2","label": "H2"},
+            {"value": "h3","label": "H3"},
+            {"value": "h4","label": "H4"},
+            {"value": "h5","label": "H5"},
+            {"value": "h6","label": "H6"},
+            {"value": "p","label": "P"},
+            {"value": "div","label": "DIV"}
+          ]
+        },
+        {
+          "type": "select",
+          "id": "fontf",
+          "default": "inherit",
+          "label": "Font family",
+          "options": [
+            {"label": "Inherit","value": "inherit"},
+            {"label": "Font family #1","value": "1"},
+            {"label": "Font family #2","value": "2"},
+            {"label": "Font family #3","value": "3"}
+          ]
+        },
+        {"type": "color","id": "text_cl","label": "Color text","default": "#282828"},
+        {"type": "range","id": "text_fs","label": "Font size","max": 100,"min": 10,"step": 1,"unit": "px","default": 16},
+        {"type": "range","id": "text_lh","label": "Line height","max": 100,"min": 0,"step": 1,"default": 0,"unit": "px","info": "Set is '0' use to default"},
+        {"type": "range","id": "text_fw","label": "Font weight","min": 100,"max": 900,"step": 100,"default": 400},
+        {"type": "number","id": "text_ls","label": "Letter spacing (in pixel)"},
+        {"type": "number","id": "text_mgb","label": "Margin bottom","default": 15},
+        {"type": "checkbox","id": "font_italic","label": "Enable font style italic","default": false},
+        {"type": "checkbox","id": "text_shadow","label": "Enable text shadow","default": false},
+        {"type": "header","content": "===== Option mobile ====="},
+        {"type": "checkbox","id": "hidden_mobile","label": "Hidden on mobile","default": false},
+        {"type": "range","id": "text_fs_mb","label": "Font size (Mobile)","max": 60,"min": 10,"step": 1,"unit": "px","default": 16},
+        {"type": "range","id": "text_lh_mb","label": "Line height (Mobile)","max": 70,"min": 0,"step": 1,"default": 0,"unit": "px","info": "Set is '0' use to default"},
+        {"type": "number","id": "text_ls_mb","label": "Letter spacing (Mobile)"},
+        {"type": "number","id": "text_mgb_mobile","label": "Margin bottom (Mobile)","default": 10},
+        {"type": "paragraph","content": "————————————————"},
+        {
+          "type": "select",
+          "id": "animation",
+          "label": "Animation",
+          "default": "none",
+          "options": [
+            {"label": "None","value": "none"},
+            {"label": "fadeIn","value": "fadeIn"},
+            {"label": "fadeInDown","value": "fadeInDown"},
+            {"label": "fadeInDownBig","value": "fadeInDownBig"},
+            {"label": "fadeInLeft","value": "fadeInLeft"},
+            {"label": "fadeInLeftBig","value": "fadeInLeftBig"},
+            {"label": "fadeInRight","value": "fadeInRight"},
+            {"label": "fadeInRightBig","value": "fadeInRightBig"},
+            {"label": "fadeInUp","value": "fadeInUp"},
+            {"label": "fadeInUpBig","value": "fadeInUpBig"},
+            {"label": "fadeInTopLeft","value": "fadeInTopLeft"},
+            {"label": "fadeInTopRight","value": "fadeInTopRight"},
+            {"label": "fadeInBottomLeft","value": "fadeInBottomLeft"},
+            {"label": "fadeInBottomRight","value": "fadeInBottomRight"},
+            {"label": "bounceIn","value": "bounceIn"},
+            {"label": "bounceInDown","value": "bounceInDown"},
+            {"label": "bounceInLeft","value": "bounceInLeft"},
+            {"label": "bounceInRight","value": "bounceInRight"},
+            {"label": "bounceInUp","value": "bounceInUp"},
+            {"label": "zoomIn","value": "zoomIn"},
+            {"label": "zoomInDown","value": "zoomInDown"},
+            {"label": "zoomInLeft","value": "zoomInLeft"},
+            {"label": "zoomInRight","value": "zoomInRight"},
+            {"label": "zoomInUp","value": "zoomInUp"},
+            {"label": "slideInDown","value": "slideInDown"},
+            {"label": "slideInLeft","value": "slideInLeft"},
+            {"label": "slideInRight","value": "slideInRight"},
+            {"label": "slideInUp","value": "slideInUp"},
+            {"label": "lightSpeedInRight","value": "lightSpeedInRight"},
+            {"label": "lightSpeedInLeft","value": "lightSpeedInLeft"},
+            {"label": "lightSpeedOutRight","value": "lightSpeedOutRight"},
+            {"label": "lightSpeedOutLeft","value": "lightSpeedOutLeft"},
+            {"label": "jello","value": "jello"},
+            {"label": "tada","value": "tada"},
+            {"label": "pulse","value": "pulse"}
+          ]
+        }
+      ]
+    },
+    {
+      "type": "btn",
+      "name": "Button",
+      "settings": [
+        {"type": "text","id": "head_btn_label","label": "Button label","default": "Shop Hearing Aids","info": "If set blank will not show"},
+        {"type": "url","id": "head_btn_url","label": "Button link","info": "If set blank will render as text badge"},
+        {
+          "type": "select",
+          "id": "target_link",
+          "label": "Open link in",
+          "default": "_self",
+          "options": [
+            {"value": "_self","label": "Current window"},
+            {"value": "_blank","label": "New window"}
+          ]
+        },
+        {"type": "checkbox","id": "show_btn_image","label": "Show image on left of button","default": false},
+        {"type": "image_picker","id": "btn_image","label": "Button left image","info": "Only show when \"Show image on left of button\" is enabled"},
+        {"type": "range","id": "btn_image_w","label": "Button left image width","min": 10,"max": 40,"step": 1,"unit": "px","default": 18},
+        {
+          "type": "select",
+          "id": "fontf",
+          "default": "inherit",
+          "label": "Font family",
+          "options": [
+            {"label": "Inherit","value": "inherit"},
+            {"label": "Font Family #1","value": "1"},
+            {"label": "Font Family #2","value": "2"},
+            {"label": "Font Family #3","value": "3"}
+          ]
+        },
+        {"type": "range","id": "button_icon_w","label": "Button icon width","min": 0,"max": 50,"step": 1,"unit": "px","default": 0},
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Button style",
+          "default": "default",
+          "options": [
+            {"label": "Default","value": "default"},
+            {"label": "Outline","value": "outline"},
+            {"label": "Bordered bottom","value": "bordered"},
+            {"label": "Link","value": "link"}
+          ]
+        },
+        {
+          "type": "select",
+          "id": "button_effect",
+          "label": "Button hover effect",
+          "default": "default",
+          "info": "Only working button style default, outline",
+          "options": [
+            {"label": "Default","value": "default"},
+            {"label": "Fade","value": "fade"},
+            {"label": "Rectangle out","value": "rectangle-out"},
+            {"label": "Sweep to right","value": "sweep-to-right"},
+            {"label": "Sweep to left","value": "sweep-to-left"},
+            {"label": "Sweep to bottom","value": "sweep-to-bottom"},
+            {"label": "Sweep to top","value": "sweep-to-top"},
+            {"label": "Shutter out horizontal","value": "shutter-out-horizontal"},
+            {"label": "Outline","value": "outline"},
+            {"label": "Shadow","value": "shadow"}
+          ]
+        },
+        {"type": "color","id": "pri_cl","label": "Primary color","default": "#00ADEF"},
+        {"type": "range","id": "pri_cl_opacity","label": "Primary color opacity","default": 100,"min": 0,"max": 100,"step": 1,"unit": "%"},
+        {
+          "type": "select",
+          "id": "button_display",
+          "label": "Button display",
+          "default": "inline",
+          "options": [
+            {"value": "inline","label": "Inline"},
+            {"value": "block","label": "Own line"}
+          ]
+        },
+        {"type": "color","id": "second_cl","label": "Secondary color","info": "Only working button style default","default": "#FFFFFF"},
+        {"type": "color","id": "pri_cl_hover","label": "Primary color hover","default": "#171932"},
+        {"type": "color","id": "second_cl_hover","label": "Secondary color hover","info": "Only working button style default, outline","default": "#FFFFFF"},
+        {"type": "range","id": "fsbutton","label": "Font size","max": 50,"min": 10,"step": 1,"unit": "px","default": 16},
+        {"type": "range","id": "fwbutton","label": "Font weight","min": 100,"max": 900,"step": 100,"default": 500},
+        {"type": "range","id": "button_ls","label": "Letter spacing","min": 0,"max": 10,"step": 0.1,"unit": "px","default": 0},
+        {"type": "range","id": "button_mh","label": "Min height","min": 30,"max": 80,"step": 1,"unit": "px","default": 48,"info": "Only working button style default, outline"},
+        {"type": "range","id": "button_bdr","label": "Border radius","min": 0,"max": 50,"step": 1,"unit": "px","default": 50,"info": "Only working button style default, outline"},
+        {"type": "range","id": "button_pd_lr","label": "Padding left/right","min": 0,"max": 100,"step": 1,"unit": "px","default": 38,"info": "Only working button style default, outline"},
+        {"type": "number","id": "button_mgb","label": "Margin bottom","default": 0},
+        {"type": "number","id": "button_mgr","label": "Margin right","default": 0,"info": "Distance to the button on the right (e.g. 25)"},
+
+        {"type": "header","content": "+ Option Mobile"},
+        {"type": "checkbox","id": "hidden_mobile","label": "Hidden on mobile","default": false},
+        {"type": "range","id": "button_icon_w_mb","label": "Button icon width (Mobile)","min": 0,"max": 50,"step": 1,"unit": "px","default": 0},
+        {"type": "range","id": "fsbutton_mb","label": "Font size (Mobile)","max": 50,"min": 0,"step": 1,"unit": "px","default": 14},
+        {"type": "range","id": "button_mh_mb","label": "Min height (Mobile)","min": 10,"max": 50,"step": 1,"unit": "px","default": 40,"info": "Only working button style default, outline"},
+        {"type": "range","id": "button_pd_lr_mb","label": "Padding left/right (Mobile)","min": 0,"max": 100,"step": 1,"unit": "px","default": 20,"info": "Only working button style default, outline"},
+        {"type": "range","id": "button_ls_mb","label": "Letter spacing (Mobile)","min": 0,"max": 10,"step": 0.1,"unit": "px","default": 0},
+        {"type": "number","id": "button_mgb_mb","label": "Margin bottom (Mobile)","default": 0},
+        {"type": "number","id": "button_mgr_mb","label": "Margin right (Mobile)","default": 0,"info": "Distance to the button on the right on mobile"},
+
+        {"type": "header","content": "+ Design pc options"},
+        {"type": "range","id": "space_top","min": 0,"max": 100,"step": 1,"label": "Space top","unit": "px","default": 0},
+        {"type": "range","id": "space_bottom","min": 0,"max": 100,"step": 1,"label": "Space bottom","unit": "px","default": 0},
+
+        {"type": "header","content": "+ Design mobile options"},
+        {"type": "range","id": "space_top_mb","min": 0,"max": 100,"step": 1,"label": "Space top","unit": "px","default": 0},
+        {"type": "range","id": "space_bottom_mb","min": 0,"max": 100,"step": 1,"label": "Space bottom","unit": "px","default": 0}
+      ]
+    },
+    {
+      "type": "image",
+      "name": "Image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image_child",
+          "label": "Image"
+        },
+        {
+          "type": "number",
+          "id": "img_width",
+          "label": "Image width (Unit: px)",
+          "info": "Set 0 to use width default of image",
+          "default": 637
+        },
+        {
+          "type": "number",
+          "id": "img_width_mb",
+          "label": "Image width on mobile (Unit: px)",
+          "info": "Set 0 to use width default of image",
+          "default": 345
+        },
+        {
+          "type": "checkbox",
+          "id": "hidden_mobile",
+          "label": "Hidden on mobile",
+          "default": false
+        },
+        {
+          "type": "header",
+          "content": "+ Design pc options"
+        },
+        {
+          "type": "range",
+          "id": "space_top",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "label": "Space top",
+          "unit": "px",
+          "default": 0
+        },
+        {
+          "type": "number",
+          "id": "mgb",
+          "label": "Space bottom",
+          "default": 20
+        },
+        {
+          "type": "header",
+          "content": "+ Design mobile options"
+        },
+        {
+          "type": "range",
+          "id": "space_top_mb",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "label": "Space top",
+          "unit": "px",
+          "default": 0
+        },
+        {
+          "type": "number",
+          "id": "mgb_mb",
+          "label": "Space bottom",
+          "default": 20
+        },
+        {
+          "type": "paragraph",
+          "content": "————————————————"
+        },
+        {
+          "type": "select",
+          "id": "animation",
+          "label": "Animation",
+          "default": "none",
+          "options": [
+            {"label": "None","value": "none"},
+            {"label": "fadeIn","value": "fadeIn"},
+            {"label": "fadeInDown","value": "fadeInDown"},
+            {"label": "fadeInDownBig","value": "fadeInDownBig"},
+            {"label": "fadeInLeft","value": "fadeInLeft"},
+            {"label": "fadeInLeftBig","value": "fadeInLeftBig"},
+            {"label": "fadeInRight","value": "fadeInRight"},
+            {"label": "fadeInRightBig","value": "fadeInRightBig"},
+            {"label": "fadeInUp","value": "fadeInUp"},
+            {"label": "fadeInUpBig","value": "fadeInUpBig"},
+            {"label": "fadeInTopLeft","value": "fadeInTopLeft"},
+            {"label": "fadeInTopRight","value": "fadeInTopRight"},
+            {"label": "fadeInBottomLeft","value": "fadeInBottomLeft"},
+            {"label": "fadeInBottomRight","value": "fadeInBottomRight"},
+            {"label": "bounceIn","value": "bounceIn"},
+            {"label": "bounceInDown","value": "bounceInDown"},
+            {"label": "bounceInLeft","value": "bounceInLeft"},
+            {"label": "bounceInRight","value": "bounceInRight"},
+            {"label": "bounceInUp","value": "bounceInUp"},
+            {"label": "zoomIn","value": "zoomIn"},
+            {"label": "zoomInDown","value": "zoomInDown"},
+            {"label": "zoomInLeft","value": "zoomInLeft"},
+            {"label": "zoomInRight","value": "zoomInRight"},
+            {"label": "zoomInUp","value": "zoomInUp"},
+            {"label": "slideInDown","value": "slideInDown"},
+            {"label": "slideInLeft","value": "slideInLeft"},
+            {"label": "slideInRight","value": "slideInRight"},
+            {"label": "slideInUp","value": "slideInUp"},
+            {"label": "lightSpeedInRight","value": "lightSpeedInRight"},
+            {"label": "lightSpeedInLeft","value": "lightSpeedInLeft"},
+            {"label": "lightSpeedOutRight","value": "lightSpeedOutRight"},
+            {"label": "lightSpeedOutLeft","value": "lightSpeedOutLeft"},
+            {"label": "jello","value": "jello"},
+            {"label": "tada","value": "tada"},
+            {"label": "pulse","value": "pulse"}
+          ]
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Rich Text",
+      "category": "LG",
+      "blocks": [
+        {
+          "type": "custom_text",
+          "settings": {
+            "text": "Effortless Mobility, Ultimate Peace of Mind",
+            "tag": "h3",
+            "text_cl": "#282828",
+            "text_fs": 36,
+            "text_fw": 600,
+            "text_mgb": 20,
+            "text_fs_mb": 24,
+            "text_mgb_mobile": 12
+          }
+        },
+        {
+          "type": "custom_text",
+          "settings": {
+            "text": "From gentle power-assisted walking to smooth electric driving, enjoy maximum stability, intelligent braking, and all-day comfort wherever you go.",
+            "tag": "p",
+            "text_cl": "#666666",
+            "text_fs": 16,
+            "text_fw": 400,
+            "text_mgb": 30,
+            "text_fs_mb": 14,
+            "text_mgb_mobile": 20
+          }
+        },
+        {
+          "type": "btn",
+          "settings": {
+            "head_btn_label": "Shop Hearing Aids",
+            "button_style": "default",
+            "pri_cl": "#00ADEF",
+            "second_cl": "#FFFFFF",
+            "pri_cl_hover": "#171932",
+            "second_cl_hover": "#FFFFFF",
+            "fsbutton": 16,
+            "fwbutton": 500,
+            "button_mh": 48,
+            "button_bdr": 50,
+            "button_pd_lr": 38,
+            "fsbutton_mb": 14,
+            "button_mh_mb": 40,
+            "button_pd_lr_mb": 20,
+            "hidden_mobile": false
+          }
+        },
+        {
+          "type": "image"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

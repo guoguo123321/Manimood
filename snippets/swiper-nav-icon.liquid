@@ -1,0 +1,36 @@
+{%- comment -%}
+  Swiper navigation icon (公用左右箭头)
+  params:
+  - direction: prev | next
+  - class: icon class name
+  - style: outline (带描边，默认) | banner (无描边白底)
+{%- endcomment -%}
+{%- liquid
+  assign icon_style = style | default: 'outline'
+  assign icon_class = class | default: 'swiper-nav-icon'
+-%}
+{%- if icon_style == 'banner' -%}
+  {%- if direction == 'next' -%}
+    <svg class="{{ icon_class }}" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true" focusable="false">
+      <circle cx="18" cy="18" r="18" fill="white"></circle>
+      <path d="M17.5767 26L16.0679 24.5002L21.4949 19.1505H11V16.8664H21.4949L16.0679 11.5001L17.5767 10L25.6225 18.0092L17.5767 26Z" fill="black"></path>
+    </svg>
+  {%- else -%}
+    <svg class="{{ icon_class }}" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true" focusable="false">
+      <circle cx="18" cy="18" r="18" transform="matrix(-1 0 0 1 36 0)" fill="white"></circle>
+      <path d="M18.4233 26L19.9321 24.5002L14.5051 19.1505H25V16.8664H14.5051L19.9321 11.5001L18.4233 10L10.3775 18.0092L18.4233 26Z" fill="black"></path>
+    </svg>
+  {%- endif -%}
+{%- else -%}
+  {%- if direction == 'next' -%}
+    <svg class="{{ icon_class }}" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true" focusable="false">
+      <circle cx="18" cy="18" r="17.5" fill="white" stroke="black"></circle>
+      <path d="M17.5767 26L16.0679 24.5002L21.4949 19.1505H11V16.8664H21.4949L16.0679 11.5001L17.5767 10L25.6225 18.0092L17.5767 26Z" fill="black"></path>
+    </svg>
+  {%- else -%}
+    <svg class="{{ icon_class }}" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true" focusable="false">
+      <circle cx="18" cy="18" r="17.5" transform="matrix(-1 0 0 1 36 0)" fill="white" stroke="black"></circle>
+      <path d="M18.4233 26L19.9321 24.5002L14.5051 19.1505H25V16.8664H14.5051L19.9321 11.5001L18.4233 10L10.3775 18.0092L18.4233 26Z" fill="black"></path>
+    </svg>
+  {%- endif -%}
+{%- endif -%}

@@ -1,0 +1,27 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+node_modules/
+*.log
+.cursor/
+# Dependencies
+node_modules/
+
+# Shopify CLI files
+.shopify/
+
+# Release files
+release
+*.zip
+
+# Local listings
+listings/
+
+# Theme Check 本地报告
+theme-check-results.json

@@ -1,0 +1,52 @@
+{%- for option in product.options_with_values -%}
+  {%- liquid
+    assign option_downcase = option.name | downcase
+    assign is_color = false
+    if get_color contains option_downcase
+      assign is_color = true
+    endif
+  -%}
+  
+  {%- if is_color -%}
+    {%- liquid
+      assign index = 0
+      assign color_maximum = settings.sw_num
+      if settings.sw_num == 0
+        assign color_maximum = 2
+      endif
+      assign colors = shop.metafields.ecomrise.colors.value
+      assign color_values = shop.metaobjects.theme_swatch.values | first
+      assign colors_2 = color_values.colors.value
+    -%}
+    <div class="t4s-product-colors {%- if settings.sw_limit %} is-t4s--limit{% endif %}" data-color-options>
+      {%- for value in option.values -%}
+        {%- liquid
+          unless value.variant
+            continue
+          endunless
+          if settings.show_color_type == '2' and value.variant.available == false
+            continue
+          endif
+          assign index = index | plus: 1
+          assign variant_key = product.variants | where: "option1", value | first
+          assign featured_image = value.variant.featured_image | default: variant_key.featured_image
+          assign color_handle = value | handle
+          assign color_obj = colors[color_handle] | default: colors_2[color_handle]
+          if color_obj.imageName != blank and featured_image == blank
+            assign featured_image = images[color_obj.imageName]
+          endif
+        -%}
+        {%- capture color_style -%}
+          {%- if value.swatch.color -%}--t4s-bg-color: {{ value.swatch.color }};{%- endif -%}
+          {%- if featured_image != null and settings.swatch_item_style == '2' -%}--t4s-bg-image: url('{{ featured_image | image_url: width: 80 }}'){%- elsif value.swatch.image != blank -%}--t4s-bg-image: url('{{ value.swatch.image | image_url: width: 80 }}'){%- elsif color_obj.colorsCSS != blank -%}{{ color_obj.colorsCSS }}{%- endif -%}
+        {%- endcapture -%}
+        <span data-imgid="0" class="t4s-pr-color__item {%- if value == option.selected_value %} is-swatch--selected{% endif %} {%- if settings.sw_limit and index > color_maximum %} is-color--limit{% endif %}" data-vid="{{ value.variant.id }}" data-tooltip="top" {%- if featured_image %} data-img="{{ featured_image | image_url: width: 1 }}" data-ratio="{{ featured_image.aspect_ratio }}"{% endif %}><span class="t4s-pr-color__name">{{ value }}</span><span class="t4s-pr-color__value bg_color_{{ value | handle }} lazyloadt4s" style="{{ color_style }}"></span></span>
+      {%- endfor -%}
+
+      {%- if settings.sw_limit and index > color_maximum -%}
+        <span class="t4s-pr-color__item is--colors-more" data-tooltip="top-end"><span class="t4s-pr-color__name">{{ 'products.product_card.swatch_limit' | t }}</span><a href="{{ pr_url }}" class="t4s-pr-color__value bg_color_limit4s"></a></span>
+      {%- endif -%}
+    </div>
+  
+  {%- endif -%}
+{%- endfor -%}

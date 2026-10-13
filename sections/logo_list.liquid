@@ -1,0 +1,222 @@
+{% liquid
+  assign se_stts = section.settings
+  assign stt_layout = se_stts.layout
+  assign b_effect = se_stts.b_effect
+  assign img_effect = se_stts.img_effect
+  assign open_link = se_stts.open_link
+  if stt_layout == 't4s-container-wrap'
+    assign html_layout = '<div class="t4s-container">__</div>' | split: '__'
+  elsif stt_layout == 'custom-container'
+    assign html_layout = '<div class="custom-container">__</div>' | split: '__'
+  else
+    assign html_layout = '__' | split: '__'
+  endif
+%}
+{{ 'section.css' | asset_url | stylesheet_tag }}
+{{ 'custom-effect.css' | asset_url | stylesheet_tag }}
+{%- if se_stts.layout == 'custom-container' -%}
+<style>
+  .{{ section.id }} .custom-container{
+    max-width:{{ se_stts.custom_container }};
+    margin: 0 auto;
+  }
+</style>
+{%- endif -%}
+<div class="{{ section.id }} logo-list-box t4s-section-inner" {% render 'section_style', se_stts: se_stts -%}>
+  {{- html_layout[0] -}}
+  {%- render 'section_tophead', se_stts: se_stts -%}
+  <div
+    class="logo-list-container logo-list-marquee--pause{{ se_stts.pause_when_hover }} logo-list-marquee--{{ se_stts.direction }}"
+    style="--logo-size:{{ se_stts.logo_size }}px;--logo-size-mb:{{ se_stts.logo_size_mb }}px;--space-h:{{ se_stts.space_h_item }}px;--space-h-mb:{{ se_stts.space_h_item_mb }}px;--marquee-delay:{{ se_stts.speed }}s;"
+  >
+    <div class="logo-list-marquee" role="list">
+      {%- for i in (1..2) -%}
+        <div class="logo-list-track{% if i == 2 %} logo-list-track--clone{% endif %}"{% if i == 2 %} aria-hidden="true"{% endif %}>
+          {%- if section.blocks.size > 0 -%}
+            {%- for block in section.blocks -%}
+              {%- assign bk_stts = block.settings -%}
+              {%- assign image = bk_stts.image -%}
+              <div class="logo-list-item t4s-eff-img-{{ img_effect }}" role="listitem" {% if i == 1 %}{{ block.shopify_attributes }}{% endif %}>
+                {%- if bk_stts.url != blank -%}
+                  <a class="logo-list-link t4s-eff t4s-eff-{{ b_effect }}" href="{{ bk_stts.url }}" target="{{ open_link }}"{% if open_link == '_blank' %} rel="noopener"{% endif %}>
+                {%- else -%}
+                  <div class="logo-list-link t4s-eff t4s-eff-{{ b_effect }}">
+                {%- endif -%}
+                  {%- if image != blank -%}
+                    <img
+                      class="logo-list-img t4s-obj-eff"
+                      src="{{ image | image_url: width: 334 }}"
+                      srcset="{{ image | image_url: width: 167 }} 1x, {{ image | image_url: width: 334 }} 2x"
+                      width="167"
+                      height="167"
+                      alt="{{ bk_stts.image_alt | strip | default: image.alt | escape }}"
+                      loading="{% if i == 1 %}eager{% else %}lazy{% endif %}"
+                      decoding="async"
+                    >
+                  {%- else -%}
+                    {{ 'logo' | placeholder_svg_tag: 't4s-placeholder-svg t4s-obj-eff logo-list-placeholder' }}
+                  {%- endif -%}
+                {%- if bk_stts.url != blank -%}
+                  </a>
+                {%- else -%}
+                  </div>
+                {%- endif -%}
+              </div>
+            {%- endfor -%}
+          {%- else -%}
+            {%- for j in (1..6) -%}
+              <div class="logo-list-item t4s-eff-img-{{ img_effect }}" role="listitem">
+                <div class="logo-list-link t4s-eff t4s-eff-{{ b_effect }}">
+                  {{ 'logo' | placeholder_svg_tag: 't4s-placeholder-svg t4s-obj-eff logo-list-placeholder' }}
+                </div>
+              </div>
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+  {{- html_layout[1] -}}
+</div>
+{% schema %}
+  {
+    "name": "Logo list",
+    "class": "shopify-logo-list",
+    "tag": "section",
+    "settings": [
+      {"type": "select","id": "layout","label": "layout","default":"t4s-container-fluid",
+        "options": [
+          {"label":"Wrapped container","value": "t4s-container-wrap"},
+          {"label":"Full width","value": "t4s-container-fluid"},
+          {"label":"custom container","value": "custom-container"}
+        ]
+      },
+      {"type": "text","id": "custom_container","label": "custom container","default": "1200px","visible_if": "{{ section.settings.layout == 'custom-container' }}"},
+
+      {"type": "header","content": "1. Heading options"},
+      {"type": "select","id": "design_heading","label": "+ Design heading","default": "1",
+          "options": [
+              {"value": "1","label": "Design 01"},
+              {"value": "2","label": "Design 02"},
+              {"value": "3","label": "Design 03"},
+              {"value": "4","label": "Design 04"},
+              {"value": "5","label": "Design 05"},
+              {"value": "6","label": "Design 06 (width line-awesome)"},
+              {"value": "7","label": "Design 07"},
+              {"value": "8","label": "Design 08"},
+              {"value": "9","label": "Design 09"},
+              {"value": "10","label": "Design 10"},
+              {"value": "11","label": "Design 11"},
+              {"value": "12","label": "Design 12"},
+              {"value": "13","label": "Design 13"},
+              {"value": "14","label": "Design 14"},
+              {"value": "15","label": "Design 15"},
+              {"value": "16","label": "Design 16"}
+          ]
+      },
+      {"type": "select","id": "heading_align","label": "+ Heading align","default": "t4s-text-center",
+        "options": [
+            {"value": "t4s-text-start","label": "Left"},
+            {"value": "t4s-text-center","label": "Center"},
+            {"value": "t4s-text-end","label": "Right"}
+        ]
+      },
+      {"type": "select","id": "heading_fontf","label": "Font family","default": "4",
+        "options": [
+          {"label": "Inherit","value": "inherit"},
+          {"label": "Font family #1","value": "1"},
+          {"label": "Font family #2","value": "2"},
+          {"label": "Font family #3","value": "3"},
+          {"label": "Font family #4(Butler-Bold)","value": "4"}
+        ]
+      },
+      {"type": "html","id": "top_heading","label": "+ Heading","default": "AS SEEN ON"},
+      {"type": "text","id": "icon_heading","label": "Enter a icon name on heading","info": "Only used for design 6 [LineAwesome]()","default": "las la-gem"},
+      {"type": "textarea","id": "top_subheading","label": "+ Subheading"},
+      {"type": "number","id": "tophead_mb","label": "+ Space bottom (px)","info": "The vertical spacing between heading and content","default": 30},
+
+      {"type": "header","content": "2. Marquee options"},
+      {"type": "range","id": "speed","min": 5,"max": 60,"step": 1,"unit": "s","label": "Marquee speed","default": 30},
+      {"type": "select","id": "direction","label": "Direction","default": "rtl",
+        "options": [
+          {"value": "rtl","label": "Right to left"},
+          {"value": "ltr","label": "Left to right"}
+        ]
+      },
+      {"type": "checkbox","id": "pause_when_hover","label": "Pause when hover","default": true},
+      {"type": "range","id": "logo_size","min": 100,"max": 200,"step": 1,"unit": "px","label": "Logo size","default": 167},
+      {"type": "range","id": "logo_size_mb","min": 40,"max": 140,"step": 1,"unit": "px","label": "Logo size (Mobile)","default": 100},
+      {"type": "range","id": "space_h_item","label": "Horizontal space between items","min": 10,"max": 100,"step": 2,"unit": "px","default": 40},
+      {"type": "range","id": "space_h_item_mb","label": "Horizontal space between items (Mobile)","min": 10,"max": 80,"step": 2,"unit": "px","default": 24},
+      {"type": "select","id": "open_link","label": "Open link in","default": "_blank",
+        "options": [
+          {"value": "_self","label": "Current window"},
+          {"value": "_blank","label": "New window"}
+        ]
+      },
+      {"type": "select","id": "img_effect","label": "Image hover effect","info": "Waring: Hovering effect will resize your images","default": "none",
+        "options": [
+          {"value": "none","label": "None"},
+          {"value": "zoom","label": "Zoom in"},
+          {"value": "rotate","label": "Rotate"},
+          {"value": "translateToTop","label": "Move to top"},
+          {"value": "translateToRight","label": "Move to right"},
+          {"value": "translateToBottom","label": "Move to bottom"},
+          {"value": "translateToLeft","label": "Move to left"},
+          {"value": "filter","label": "Filter"},
+          {"value": "bounceIn","label": "BounceIn"}
+        ]
+      },
+      {"type": "select","id": "b_effect","label": "Banner effect when hover","default": "none",
+        "options": [
+          {"value": "none","label": "None"},
+          {"value": "border-run","label": "Border run"},
+          {"value": "pervasive-circle","label": "Pervasive circle"},
+          {"value": "plus-zoom-overlay","label": "Plus zoom overlay"},
+          {"value": "dark-overlay","label": "Dark overlay"},
+          {"value": "light-overlay","label": "Light overlay"}
+        ]
+      },
+
+      {"type":"color","id":"cl_bg","label":"bg_color","default":"#FFFFFF"},
+      {"type": "color_background","id": "cl_bg_gradient","label": "Background gradient"},
+
+      {"type": "header","content": "+ Design pc options"},
+      {"type": "text","id": "mg","label": "Margin","info":"Margin top, margin right, margin bottom, margin left. If you not use to blank","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd","label": "Padding","info":"Padding top, padding right, padding bottom, padding left. If you not use to blank","default": "70px,0px,70px,0px"},
+
+      {"type": "header","content": "+ Design Tablet Options"},
+      {"type": "text","id": "mg_tb","label": "Margin","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd_tb","label": "Padding","default": "50px,0px,50px,0px"},
+
+      {"type": "header","content": "+ Design mobile options"},
+      {"type": "text","id": "mg_mb","label": "Margin","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd_mb","label": "Padding","default": "30px,0px,30px,0px"}
+    ],
+    "blocks": [
+      {
+        "type": "logo_item",
+        "name": "Logo",
+        "settings": [
+          {"type": "image_picker","id": "image","label": "Logo image"},
+          {"type":"text","id":"image_alt","label":"Image alt text","info":"Leave blank to use the original image alt text."},
+          {"type": "url","id": "url","label": "Link"}
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Logo list",
+        "category": "LG",
+        "blocks": [
+          {"type": "logo_item"},
+          {"type": "logo_item"},
+          {"type": "logo_item"},
+          {"type": "logo_item"},
+          {"type": "logo_item"},
+          {"type": "logo_item"}
+        ]
+      }
+    ]
+  }
+{% endschema %}

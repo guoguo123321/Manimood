@@ -1,0 +1,263 @@
+{% liquid
+  unless product.available
+    continue
+  endunless
+%}
+{{ 'quick-order-list.css' | asset_url | stylesheet_tag }}
+{{ 'pagination.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'quick-order-list.js' | asset_url }}" defer="defer"></script>
+{%-liquid
+  assign items_in_cart = cart | line_items_for: product | sum: 'quantity'
+  if settings.currency_code_enabled
+    assign total_variant_in_cart = cart | line_items_for: product | sum: 'original_line_price' | money_with_currency
+  else
+    assign total_variant_in_cart = cart | line_items_for: product | sum: 'original_line_price' | money
+  endif
+  if product.has_only_default_variant
+    continue
+  endif
+-%}
+{%- paginate product.variants by section.settings.variants_per_page -%}
+  <div class="t4s-container" data-ntajax-container data-ntajax-options='{"id":"{{ section.id }}","type":"AjaxDefault","typeFilters":"facets","isProduct":true,"updateURL":true,"updateURLPrev":true,"sort_by":"manual"}'>
+    <div class="t4s-row" data-contentlm-replace>
+      <div class="t4s-col-item t4s-col-12">
+        <quick-order-list id="{{ section.id }}-{{ product.id }}" class="t4s-product t4s_{{ section.settings.image_ratio }}" data-section="{{ section.id }}" data-product-id="{{ product.id }}" data-url="{{ product.url }}" data-current-page="{{ paginate.current_page }}" aria-busy="false">
+          <form action="{{ routes.cart_update_url }}" method="POST" id="QuickOrderList">
+            <div class="t4s-quick-order-list-content">
+              <div class="t4s-qol-head">
+              <div class="t4s-qol-head-item">
+                {%- if product.has_only_default_variant -%}
+                    <p>Product</p>           
+                {%- else -%}
+                    <p>Variant</p>
+                {%- endif -%}
+                </div>
+                  <div class="t4s-qol-head-item">
+                    <p>Quantity</p>
+                  </div>
+                  <div class="t4s-qol-head-item">
+                    <p>Price</p>
+                  </div>
+              <div class="t4s-qol-head-item">
+                {%- if product.has_only_default_variant -%}
+                    <p>Product subtotal</p>
+                {%- else -%}         
+                    <p>Variant subtotal</p>   
+                {%- endif -%}
+              </div>
+              </div>
+              <table class="t4s-quick-order-list__table">
+                <tbody>
+                  {%- if product.has_only_default_variant -%}
+                    {%- render 'quick-order-list-row',
+                      item: product,
+                      image: product.featured_media,
+                      sku: product.selected_or_first_available_variant.sku,
+                      variant: product.selected_or_first_available_variant,
+                      show_image: section.settings.show_image,
+                      product: product
+                    -%}
+                  {%- else -%}
+                    {%- for variant in product.variants -%}
+                      {%- render 'quick-order-list-row',
+                        item: variant,
+                        image: variant.image,
+                        sku: variant.sku,
+                        variant: variant,
+                        show_image: section.settings.show_image,
+                        product: product
+                      -%}
+                    {%- endfor -%}
+                  {%- endif -%}
+                </tbody>
+              </table>
+              {%- if paginate.pages > 1 -%}
+                <div class="t4s-row t4s-prs-footer t4s-has-btn-default t4s-text-center">
+                  {%- render 'pagination', paginate: paginate, anchor: '', ajax: '' -%}
+                </div>
+              {%- endif -%}
+              <div class="t4s-quick-order-list__total" id="t4s-quick-order-list-total-{{ product.id }}-{{ section.id }}">
+                <div class="t4s-quick-order-item__total">
+                  {%- if items_in_cart > 0 -%}
+                    <div class=t4s-quick-order-list__total-actions>
+                      <div class="t4s-quick-order-list__total-actions-item t4s-d-flex t4s-justify-content-center">
+                        <a href="{{ routes.cart_url }}">View cart</a>
+                      </div>
+                      <quick-order-list-remove-all-button>
+                        <button class="button" type="button">
+                          <span class="">Remove all</span>
+                        </button>
+                      </quick-order-list-remove-all-button>
+                    </div>
+                  {%- endif -%}
+                </div>
+
+                <div class="t4s-quick-order-item__total">
+                  <div class="t4s-d-none t4s-d-md-flex t4s-flex-col t4s-text-start t4s-h-100 t4s-align-items-center">
+                    <span class="t4s-pr" update-change>
+                      <span hidden-loading>
+                        <span>{{ items_in_cart }}</span>
+                        <span>Total items </span>
+                      </span>
+                      <span class="t4s-loading__spinner">
+                        <svg width="16" height="16" class="t4s-svg-spinner" focusable="false" role="presentation" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg"><circle class="t4s-path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle></svg>
+                      </span>
+                    </span>
+                  </div>
+                </div>
+
+                <div></div>
+
+                <div class="t4s-quick-order-item__total">
+                  <div class="t4s-d-block t4s-text-end">
+                    <p>
+                      <span class="t4s-pr" update-change>
+                        <span hidden-loading>
+                          {{ total_variant_in_cart }}
+                        </span>
+                        <span class="t4s-loading__spinner">
+                          <svg width="16" height="16" class="t4s-svg-spinner" focusable="false" role="presentation" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg"><circle class="t4s-path" fill="none" stroke-width="6" cx="33" cy="33" r="30"></circle></svg>
+                        </span>
+                      </span>
+                    </p>
+                    <p class="t4s-total"><span>{{ items_in_cart }}</span> Total items</p>
+                    <p>Product subtotal</p>
+                    <div>
+                      {%- assign page_url = settings.link_ship -%}
+                      {%- if cart.taxes_included and page_url != blank -%}
+                        {{ 'cart.general.taxes_included_and_shipping_policy_html' | t: link: page_url }}
+                      {%- elsif cart.taxes_included -%}
+                        {{ 'cart.general.taxes_included_but_shipping_at_checkout' | t }}
+                      {%- elsif page_url != blank -%}
+                        {{ 'cart.general.taxes_and_shipping_policy_at_checkout_html' | t: link: page_url }}
+                      {%- else -%}
+                        {{ 'cart.general.taxes_and_shipping_at_checkout' | t }}
+                      {%- endif -%}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+          <script type="application/json" data-cart-contents>
+            {{ cart | line_items_for: product | map: "variant_id" | json }}
+          </script>
+        </quick-order-list>
+      </div>
+    </div>
+  </div>
+{%- endpaginate -%}
+<script>
+  window.QuickOrderListID = {{ section.id | json }} 
+</script>
+{% schema %}
+  {
+    "name": "Quick order list",
+    "limit": 1,
+    "class": "t4s-section-main t4s-collection-page t4s-section",
+    "enabled_on": {
+      "templates": ["product"]
+    },
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_image",
+        "label": "Show image",
+        "default": false
+      },
+      {
+        "type": "select",
+        "id": "image_ratio",
+        "label": "Image ratio",
+        "default": "ratio16_9",
+        "info": "Aspect Ratio Custom will settings in General panel.",
+        "options": [
+        {
+            "group": "Natural",
+            "value": "ratioadapt",
+            "label": "Adapt to image"
+        },
+        {
+            "group": "Landscape",
+            "value": "ratio2_1",
+            "label": "2:1"
+        },
+        {
+            "group": "Landscape",
+            "value": "ratio16_9",
+            "label": "16:9"
+        },
+        {
+            "group": "Landscape",
+            "value": "ratio8_5",
+            "label": "8:5"
+        },
+        {
+            "group": "Landscape",
+            "value": "ratio3_2",
+            "label": "3:2"
+        },
+        {
+            "group": "Landscape",
+            "value": "ratio4_3",
+            "label": "4:3"
+        },
+        {
+            "group": "Landscape",
+            "value": "rationt",
+            "label": "Ratio ASOS"
+        },
+        {
+            "group": "Squared",
+            "value": "ratio1_1",
+            "label": "1:1"
+        },
+        {
+            "group": "Portrait",
+            "value": "ratio2_3",
+            "label": "2:3"
+        },
+        {
+            "group": "Portrait",
+            "value": "ratio1_2",
+            "label": "1:2"
+        },
+        {
+            "group": "Custom",
+            "value": "ratiocus1",
+            "label": "Ratio custom 1"
+        },
+        {
+            "group": "Custom",
+            "value": "ratiocus2",
+            "label": "Ratio custom 2"
+        },
+        {
+            "group": "Custom",
+            "value": "ratio_us3",
+            "label": "Ratio custom 3"
+        },
+        {
+            "group": "Custom",
+            "value": "ratiocus4",
+            "label": "Ratio custom 4"
+        }
+        ]
+    },
+      {
+        "type": "range",
+        "id": "variants_per_page",
+        "min": 1,
+        "max": 100,
+        "step": 1,
+        "label": "Variants per page",
+        "default": 15
+      },
+    ],
+    "presets": [
+      {
+        "name": "Quick order list"
+      }
+    ]
+  }
+{% endschema %}

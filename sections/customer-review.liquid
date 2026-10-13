@@ -1,0 +1,377 @@
+{% liquid
+  assign se_stts = section.settings
+  assign stt_layout = se_stts.layout
+  assign b_effect = se_stts.b_effect
+  assign img_effect = se_stts.img_effect
+  if stt_layout == 't4s-container-wrap'
+    assign html_layout = '<div class="t4s-container">__</div>' | split: '__'
+  elsif stt_layout == 'custom-container'
+    assign html_layout = '<div class="custom-container">__</div>' | split: '__'
+  else
+    assign html_layout = '__' | split: '__'
+  endif
+%}
+{%- capture review_star -%}
+<svg class="customer-review-stars__icon" xmlns="http://www.w3.org/2000/svg" width="17.23" height="16" viewBox="0 0 17.2307692 16" fill="none" aria-hidden="true" focusable="false">
+  <path fill="#F89C60" d="M17.0315919,7.08959935 C15.8147183,8.46748727 13.6475062,10.7524984 13.6475062,10.7524984 C13.6475062,10.7524984 13.9951799,13.255681 14.2037904,14.9665683 C14.2965044,15.839254 13.6127326,16.2181595 12.8478379,15.8736759 C11.3875801,15.1962084 9.16244341,14.1398199 8.66409961,13.8986797 C8.15416457,14.1283355 5.91743665,15.1732397 4.44558765,15.8506915 C3.66910175,16.1836752 2.98532988,15.8162385 3.06645267,14.9435839 C3.26347195,13.2326967 3.62273685,10.7409984 3.62273684,10.7409984 C3.62273682,10.7409984 1.43235806,8.46747164 0.203909003,7.08958372 C-0.236478693,6.58435034 0.0532703903,5.87244548 0.910863335,5.74613325 C2.67244564,5.4361026 5.39592616,4.94235358 5.39592616,4.94235358 C5.39592616,4.94235358 6.89094185,2.39323359 7.82968911,0.831627267 C8.35121539,-0.121417734 8.71048027,-0.00658983078 8.76843639,0.0163788718 C8.930682,0.062316277 9.18565741,0.257503405 9.51016439,0.831627267 C10.4373047,2.3932492 11.9091537,4.9423692 11.9091537,4.9423692 C11.9091537,4.9423692 14.5978763,5.43613385 16.3362762,5.74614887 C17.1822936,5.87246113 17.4604357,6.59585032 17.0316392,7.08959935 Z"/>
+</svg>
+{%- endcapture -%}
+{{ 'section.css' | asset_url | stylesheet_tag }}
+{{ 'swiper.css' | asset_url | stylesheet_tag }}
+{{ 'custom-effect.css' | asset_url | stylesheet_tag }}
+{%- if se_stts.layout == 'custom-container' -%}
+<style>
+  .{{ section.id }} .custom-container{
+    max-width:{{ se_stts.custom_container }};
+    margin: 0 auto;
+  }
+</style>
+{%- endif -%}
+<div class="{{ section.id }} customer-review-box t4s-section-inner" {% render 'section_style', se_stts: se_stts -%}>
+  {{- html_layout[0] -}}
+  {%- render 'section_tophead', se_stts: se_stts -%}
+  <div class="customer-review-container show-pagination-pc-{{ se_stts.show_pagination_pc }} show-navigation-pc-{{ se_stts.show_navigation_pc }} show-pagination-mb-{{ se_stts.show_pagination_mb }} show-navigation-mb-{{ se_stts.show_navigation_mb }}" style="--color-arrow:{{ se_stts.color_arrow }};--color-arrow-hover:{{ se_stts.color_arrow_hover }};--col-dk:{{ se_stts.col_dk }};--col-tb:{{ se_stts.col_tb }};--col-mb:{{ se_stts.col_mb }};--space-h:{{ se_stts.space_h_item }}px;--space-h-mb:{{ se_stts.space_h_item_mb }}px;">
+    <div class="swiper customerReview">
+      <div class="swiper-wrapper">
+        {%- if section.blocks.size > 0 -%}
+          {%- for block in section.blocks -%}
+            {%- assign bk_stts = block.settings -%}
+            {%- liquid
+              assign rating = bk_stts.rating | default: 5
+              assign review_product = bk_stts.product
+              assign product_image = blank
+              if review_product != blank
+                assign product_image = review_product.featured_media.preview_image | default: review_product.featured_image
+              endif
+            -%}
+            <div class="swiper-slide" {{ block.shopify_attributes }}>
+              <div class="customer-review-item t4s-eff-img-{{ img_effect }}" timeline hdt-reveal="slide-in" style="--animation-order:{{ forloop.index0 }};">
+                <div class="customer-review-image t4s-eff t4s-eff-{{ b_effect }}">
+                  {%- if bk_stts.image != blank -%}
+                    {%- assign image = bk_stts.image -%}
+                    <div class="t4s_ratio t4s_ratio1_1" style="--aspect-ratioapt: {{ image.aspect_ratio | default: 1 }};">
+                      {%- assign review_image_alt = bk_stts.image_alt | strip | default: image.alt | default: bk_stts.name -%}
+                      {{ image | image_url: width: 1000 | image_tag: class: 't4s-obj-eff', loading: 'lazy', sizes: '(min-width: 1025px) 25vw, (min-width: 768px) 33vw, 75vw', widths: '200,400,600,800,1000', alt: review_image_alt }}
+                      <span class="lazyloadt4s-loader is-bg-img" style="background: url({{ image | image_url: width: 1 }});"></span>
+                    </div>
+                  {%- else -%}
+                    <div class="t4s_ratio t4s_ratio1_1">
+                      {{ 'image' | placeholder_svg_tag: 't4s-placeholder-svg t4s-obj-eff' }}
+                    </div>
+                  {%- endif -%}
+                </div>
+                <div class="customer-review-info">
+                  <div class="customer-review-stars" aria-label="{{ rating }} star rating">
+                    {%- for i in (1..rating) -%}
+                      {{ review_star }}
+                    {%- endfor -%}
+                  </div>
+                  {%- if bk_stts.content != blank -%}
+                    <p class="customer-review-content">{{ bk_stts.content }}</p>
+                  {%- endif -%}
+                  {%- if bk_stts.name != blank -%}
+                    <div class="customer-review-name">{{ bk_stts.name }}</div>
+                  {%- endif -%}
+                  {%- if review_product != blank -%}
+                    <a class="customer-review-product" href="{{ review_product.url }}">
+                      <span class="customer-review-product__img">
+                        {%- if product_image != blank -%}
+                          <img src="{{ product_image | image_url: width: 60, height: 60, crop: 'center' }}" width="30" height="30" alt="{{ review_product.title | escape }}" loading="lazy">
+                        {%- else -%}
+                          {{ 'product-1' | placeholder_svg_tag: 't4s-placeholder-svg' }}
+                        {%- endif -%}
+                      </span>
+                      <span class="customer-review-product__title">{{ review_product.title }}</span>
+                    </a>
+                  {%- endif -%}
+                </div>
+              </div>
+            </div>
+          {%- endfor -%}
+        {%- else -%}
+          {%- for i in (1..4) -%}
+            {%- case forloop.index -%}
+              {%- when 1 -%}
+                {%- assign review_text = 'The 52-color clay kit saved our rainy weekend! My 6-year-old was completely engaged for 3 hours straight without asking for the iPad.' -%}
+                {%- assign review_name = 'Sarah M.' -%}
+                {%- assign review_product_title = 'Claylia 52-Color Magic Clay Kit' -%}
+              {%- when 2 -%}
+                {%- assign review_text = "We made matching mugs as a family. My daughter still uses hers every morning for her 'special milk.' Priceless." -%}
+                {%- assign review_name = 'Jessica T.' -%}
+                {%- assign review_product_title = 'Claylia Air Dry Pottery Kit' -%}
+              {%- when 3 -%}
+                {%- assign review_text = "Bought this for my niece's birthday. She made a flower bouquet that looks so real her teacher thought they were from a florist." -%}
+                {%- assign review_name = 'Amanda K.' -%}
+                {%- assign review_product_title = 'Claylia 52-Color Magic Clay Kit' -%}
+              {%- else -%}
+                {%- assign review_text = 'Perfect rainy day activity. We made coasters together and now they sit on our coffee table. Conversation starters every time.' -%}
+                {%- assign review_name = 'Rachel P.' -%}
+                {%- assign review_product_title = 'Claylia Craft Plaster Casting Kit' -%}
+            {%- endcase -%}
+            <div class="swiper-slide">
+              <div class="customer-review-item t4s-eff-img-{{ img_effect }}" timeline hdt-reveal="slide-in" style="--animation-order:{{ forloop.index0 }};">
+                <div class="customer-review-image t4s-eff t4s-eff-{{ b_effect }}">
+                  <div class="t4s_ratio t4s_ratio1_1">
+                    {{ 'image' | placeholder_svg_tag: 't4s-placeholder-svg t4s-obj-eff' }}
+                  </div>
+                </div>
+                <div class="customer-review-info">
+                  <div class="customer-review-stars" aria-hidden="true">
+                    {%- for s in (1..5) -%}
+                      {{ review_star }}
+                    {%- endfor -%}
+                  </div>
+                  <p class="customer-review-content">{{ review_text }}</p>
+                  <div class="customer-review-name">{{ review_name }}</div>
+                  <div class="customer-review-product">
+                    <span class="customer-review-product__img">
+                      {{ 'product-1' | placeholder_svg_tag: 't4s-placeholder-svg' }}
+                    </span>
+                    <span class="customer-review-product__title">{{ review_product_title }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+    </div>
+    <div class="common-swiper-media">
+      <div class="swiper-pagination common-swiper-pagination customer-review-pagination"></div>
+    </div>
+    <button type="button" class="swiper-button-prev common-prev customer-review-prev" aria-label="Previous slide">
+      {% render 'swiper-nav-icon', direction: 'prev', class: 'customer-review-nav-icon' %}
+    </button>
+    <button type="button" class="swiper-button-next common-next customer-review-next" aria-label="Next slide">
+      {% render 'swiper-nav-icon', direction: 'next', class: 'customer-review-nav-icon' %}
+    </button>
+  </div>
+  {{- html_layout[1] -}}
+</div>
+
+<script>
+window.ManimoodComponents(document.querySelector('.{{ section.id }}'), function () {
+  (function() {
+    var el = document.querySelector('.{{ section.id }} .customerReview');
+    if (!el || typeof Swiper === 'undefined') return;
+    new Swiper(el, {
+      slidesPerView: {{ se_stts.col_mb }},
+      spaceBetween: {{ se_stts.space_h_item_mb }},
+      watchOverflow: true,
+      pagination: {
+        el: '.{{ section.id }} .customer-review-pagination',
+        clickable: true
+      },
+      navigation: {
+        nextEl: '.{{ section.id }} .customer-review-next',
+        prevEl: '.{{ section.id }} .customer-review-prev'
+      },
+      breakpoints: {
+        768: {
+          slidesPerView: {{ se_stts.col_tb }},
+          spaceBetween: {{ se_stts.space_h_item }}
+        },
+        1025: {
+          slidesPerView: {{ se_stts.col_dk }},
+          spaceBetween: {{ se_stts.space_h_item }}
+        }
+      }
+    });
+  })();
+
+}, true);
+</script>
+{% schema %}
+  {
+    "name": "Customer Review",
+    "class": "shopify-customer-review",
+    "tag": "section",
+    "settings": [
+      {"type": "select","id": "layout","label": "layout","default":"t4s-container-wrap",
+        "options": [
+          {"label":"Wrapped container","value": "t4s-container-wrap"},
+          {"label":"Full width","value": "t4s-container-fluid"},
+          {"label":"custom container","value": "custom-container"}
+        ]
+      },
+      {"type": "text","id": "custom_container","label": "custom container","default": "1200px","visible_if": "{{ section.settings.layout == 'custom-container' }}"},
+
+      {"type": "header","content": "1. Heading options"},
+      {"type": "select","id": "design_heading","label": "+ Design heading","default": "1",
+          "options": [
+              {"value": "1","label": "Design 01"},
+              {"value": "2","label": "Design 02"},
+              {"value": "3","label": "Design 03"},
+              {"value": "4","label": "Design 04"},
+              {"value": "5","label": "Design 05"},
+              {"value": "6","label": "Design 06 (width line-awesome)"},
+              {"value": "7","label": "Design 07"},
+              {"value": "8","label": "Design 08"},
+              {"value": "9","label": "Design 09"},
+              {"value": "10","label": "Design 10"},
+              {"value": "11","label": "Design 11"},
+              {"value": "12","label": "Design 12"},
+              {"value": "13","label": "Design 13"},
+              {"value": "14","label": "Design 14"},
+              {"value": "15","label": "Design 15"},
+              {"value": "16","label": "Design 16"}
+          ]
+      },
+      {"type": "select","id": "heading_align","label": "+ Heading align","default": "t4s-text-center",
+        "options": [
+            {"value": "t4s-text-start","label": "Left"},
+            {"value": "t4s-text-center","label": "Center"},
+            {"value": "t4s-text-end","label": "Right"}
+        ]
+      },
+      {"type": "select","id": "heading_fontf","label": "Font family","default": "4",
+        "options": [
+          {"label": "Inherit","value": "inherit"},
+          {"label": "Font family #1","value": "1"},
+          {"label": "Font family #2","value": "2"},
+          {"label": "Font family #3","value": "3"},
+          {"label": "Font family #4(Butler-Bold)","value": "4"}
+        ]
+      },
+      {"type": "html","id": "top_heading","label": "+ Heading","default": "What Parents Are Saying"},
+      {"type": "text","id": "icon_heading","label": "Enter a icon name on heading","info": "Only used for design 6 [LineAwesome]()","default": "las la-gem"},
+      {"type": "textarea","id": "top_subheading","label": "+ Subheading","default": "Real experiences from real families creating at home."},
+      {"type": "number","id": "tophead_mb","label": "+ Space bottom (px)","info": "The vertical spacing between heading and content","default": 40},
+
+      {"type": "header","content": "2. Items options"},
+      {"type": "select","id": "col_dk","label": "Items per row","default": "4",
+        "options": [
+          {"value": "1","label": "1"},
+          {"value": "1.5","label": "1.5"},
+          {"value": "2","label": "2"},
+          {"value": "2.5","label": "2.5"},
+          {"value": "3","label": "3"},
+          {"value": "3.5","label": "3.5"},
+          {"value": "3.6","label": "3.6"},
+          {"value": "3.7","label": "3.7"},
+          {"value": "3.8","label": "3.8"},
+          {"value": "3.9","label": "3.9"},
+          {"value": "4","label": "4"},
+          {"value": "4.5","label": "4.5"},
+          {"value": "5","label": "5"},
+          {"value": "5.5","label": "5.5"},
+          {"value": "6","label": "6"},
+          {"value": "6.5","label": "6.5"}
+        ]
+      },
+      {"type": "select","id": "col_tb","label": "Items per row (Tablet)","default": "2",
+        "options": [
+          {"value": "1","label": "1"},
+          {"value": "2","label": "2"},
+          {"value": "3","label": "3"},
+          {"value": "4","label": "4"}
+        ]
+      },
+      {"type": "select","id": "col_mb","label": "Items per row (Mobile)","default": "1",
+        "options": [
+          {"value": "1","label": "1"},
+          {"value": "2","label": "2"},
+          {"value": "3","label": "3"}
+        ]
+      },
+      {"type": "range","id": "space_h_item","label": "Horizontal space between items","min": 0,"max": 50,"step": 1,"unit": "px","default": 30},
+      {"type": "range","id": "space_h_item_mb","label": "Horizontal space between items (Mobile)","min": 0,"max": 50,"step": 1,"unit": "px","default": 10},
+      {"type": "select","id": "img_effect","label": "Image hover effect","info": "Waring: Hovering effect will resize your images","default": "none",
+        "options": [
+          {"value": "none","label": "None"},
+          {"value": "zoom","label": "Zoom in"},
+          {"value": "rotate","label": "Rotate"},
+          {"value": "translateToTop","label": "Move to top"},
+          {"value": "translateToRight","label": "Move to right"},
+          {"value": "translateToBottom","label": "Move to bottom"},
+          {"value": "translateToLeft","label": "Move to left"},
+          {"value": "filter","label": "Filter"},
+          {"value": "bounceIn","label": "BounceIn"}
+        ]
+      },
+      {"type": "select","id": "b_effect","label": "Banner effect when hover","default": "none",
+        "options": [
+          {"value": "none","label": "None"},
+          {"value": "border-run","label": "Border run"},
+          {"value": "pervasive-circle","label": "Pervasive circle"},
+          {"value": "plus-zoom-overlay","label": "Plus zoom overlay"},
+          {"value": "dark-overlay","label": "Dark overlay"},
+          {"value": "light-overlay","label": "Light overlay"}
+        ]
+      },
+
+      {"type": "header","content": "Swiper controls"},
+      {"type": "checkbox","id": "show_pagination_pc","label": "Show pagination (PC)","default": false},
+      {"type": "checkbox","id": "show_navigation_pc","label": "Show navigation arrows (PC)","default": false},
+      {"type": "checkbox","id": "show_pagination_mb","label": "Show pagination (Mobile)","default": true},
+      {"type": "checkbox","id": "show_navigation_mb","label": "Show navigation arrows (Mobile)","default": false},
+      {"type": "color","id": "color_arrow","label": "Navigation arrow color","default": "#171932"},
+      {"type": "color","id": "color_arrow_hover","label": "Navigation arrow hover color","default": "#00ADEF"},
+
+      {"type":"color","id":"cl_bg","label":"bg_color","default":"#FFFFFF"},
+      {"type": "color_background","id": "cl_bg_gradient","label": "Background gradient"},
+
+      {"type": "header","content": "+ Design pc options"},
+      {"type": "text","id": "mg","label": "Margin","info":"Margin top, margin right, margin bottom, margin left. If you not use to blank","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd","label": "Padding","info":"Padding top, padding right, padding bottom, padding left. If you not use to blank","default": "100px,0px,100px,0px"},
+
+      {"type": "header","content": "+ Design Tablet Options"},
+      {"type": "text","id": "mg_tb","label": "Margin","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd_tb","label": "Padding","default": "60px,0px,60px,0px"},
+
+      {"type": "header","content": "+ Design mobile options"},
+      {"type": "text","id": "mg_mb","label": "Margin","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd_mb","label": "Padding","default": "40px,0px,40px,0px"}
+    ],
+    "blocks": [
+      {
+        "type": "review",
+        "name": "Review",
+        "settings": [
+          {"type": "image_picker","id": "image","label": "Image"},
+          {"type":"text","id":"image_alt","label":"Image alt text","info":"Leave blank to use the original image alt text."},
+          {"type": "range","id": "rating","label": "Star rating","min": 1,"max": 5,"step": 1,"default": 5},
+          {"type": "textarea","id": "content","label": "Review","default": "The 52-color clay kit saved our rainy weekend! My 6-year-old was completely engaged for 3 hours straight without asking for the iPad."},
+          {"type": "text","id": "name","label": "Name","default": "Sarah M."},
+          {"type": "product","id": "product","label": "Product"}
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Customer Review",
+        "category": "LG",
+        "blocks": [
+          {
+            "type": "review",
+            "settings": {
+              "content": "The 52-color clay kit saved our rainy weekend! My 6-year-old was completely engaged for 3 hours straight without asking for the iPad.",
+              "name": "Sarah M."
+            }
+          },
+          {
+            "type": "review",
+            "settings": {
+              "content": "We made matching mugs as a family. My daughter still uses hers every morning for her 'special milk.' Priceless.",
+              "name": "Jessica T."
+            }
+          },
+          {
+            "type": "review",
+            "settings": {
+              "content": "Bought this for my niece's birthday. She made a flower bouquet that looks so real her teacher thought they were from a florist.",
+              "name": "Amanda K."
+            }
+          },
+          {
+            "type": "review",
+            "settings": {
+              "content": "Perfect rainy day activity. We made coasters together and now they sit on our coffee table. Conversation starters every time.",
+              "name": "Rachel P."
+            }
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

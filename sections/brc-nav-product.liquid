@@ -1,0 +1,127 @@
+{% liquid
+  assign se_stts = section.settings
+  assign stt_layout = se_stts.layout
+  if stt_layout == 't4s-container-wrap'
+    assign html_layout = '<div class="t4s-container">__</div>' | split: '__'
+  elsif stt_layout == 'custom-container'
+    assign html_layout = '<div class="custom-container">__</div>' | split: '__'
+  else
+    assign html_layout = '__' | split: '__'
+  endif
+  assign ck_next_pr = false
+  if se_stts.back_next_pr and collection != blank
+    assign ck_next_pr = true
+  endif
+  assign append_style = '--cl_link:' | append: se_stts.cl_link
+%}
+{{ 'section.css' | asset_url | stylesheet_tag }}
+{{ 'breadcrumbs.css' | asset_url | stylesheet_tag }}
+{%- if se_stts.layout == 'custom-container' %}
+<style>
+  .{{ section.id }} .custom-container{
+    max-width:{{ se_stts.custom_container }};
+    margin: 0 auto;
+  }
+</style>
+{%- endif -%}
+<div class="{{ section.id }} breadcrumb-box t4s-section-inner" {% render 'section_style', se_stts: se_stts, append_style: append_style -%}>
+  {{- html_layout[0] -}}
+  <div class="breadcrumb_pr_wrap">
+    <div class="t4s-row t4s-align-items-center">
+      <div class="t4s-col t4s-col-item">
+        <nav class="t4s-pr-breadcrumb">
+          <a href="{{ routes.root_url }}" class="t4s-dib">{{ 'products.breadcrumb.home' | t }}</a>
+          {% if collection.url != blank %}
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12.96875 4.28125 L 11.53125 5.71875 L 21.8125 16 L 11.53125 26.28125 L 12.96875 27.71875 L 23.96875 16.71875 L 24.65625 16 L 23.96875 15.28125 Z"/></svg>
+            <a href="{{ collection.url }}" class="t4s-dib">{{ collection.title }}</a>
+          {% endif %}
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16" fill="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12.96875 4.28125 L 11.53125 5.71875 L 21.8125 16 L 11.53125 26.28125 L 12.96875 27.71875 L 23.96875 16.71875 L 24.65625 16 L 23.96875 15.28125 Z"/></svg>
+          <span>{{ product.title }}</span>
+        </nav>
+      </div>
+      {%- if ck_next_pr -%}
+      <div class="t4s-col-auto flex t4s-align-items-center t4s-col-item">
+        <div class="t4s-pr-next-prev">
+          {%- assign next_pr = collection.next_product -%}
+          {%- assign prev_pr = collection.previous_product -%}
+          {%- if prev_pr -%}
+            <a href="{{ prev_pr.url }}" class="t4s-nav-pr" data-tooltip="top">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18" fill="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 19.03125 4.28125 L 8.03125 15.28125 L 7.34375 16 L 8.03125 16.71875 L 19.03125 27.71875 L 20.46875 26.28125 L 10.1875 16 L 20.46875 5.71875 Z"/>
+              </svg>
+              <span class="t4s-text-pr">{{ prev_pr.title }}</span>
+            </a>
+          {%- endif -%}
+          <a href="{{ collection.url }}" class="t4s-nav-back" data-tooltip="top">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-grid">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <span class="t4s-text-pr">{{ 'products.breadcrumb.back_to' | t: title: collection.title }}</span>
+          </a>
+          {%- if next_pr -%}
+            <a href="{{ next_pr.url }}" class="t4s-nav-pr" data-tooltip="top" data-t4s-tooltip='{{ next_pr.title }}'>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" fill="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 12.96875 4.28125 L 11.53125 5.71875 L 21.8125 16 L 11.53125 26.28125 L 12.96875 27.71875 L 23.96875 16.71875 L 24.65625 16 L 23.96875 15.28125 Z"/>
+              </svg>
+              <span class="t4s-text-pr">{{ next_pr.title }}</span>
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+      {%- endif -%}
+    </div>
+  </div>
+  {{- html_layout[1] -}}
+</div>
+{% schema %}
+{
+  "name": "Breadcrumb",
+  "class": "shopify-breadcrumb t4s-pr_breadcrumbs",
+  "tag": "section",
+  "disabled_on": {
+    "templates": ["index"]
+  },
+  "settings": [
+    {"type": "select","id": "layout","label": "layout","default":"t4s-container-wrap",
+      "options": [
+        {"label":"Wrapped container","value": "t4s-container-wrap"},
+        {"label":"Full width","value": "t4s-container-fluid"},
+        {"label":"custom container","value": "custom-container"}
+      ]
+    },
+    {"type": "text","id": "custom_container","label": "custom container","default": "1200px"},
+
+    {"type": "header","content": "+ Breadcrumb"},
+    {"type": "checkbox","id": "back_next_pr","label": "Show prev/next product button","default": true},
+    {"type": "color","id": "cl_link","label": "Breadcrumb color","default": "#222222"},
+
+    {"type":"color","id":"cl_bg","label":"bg_color","default":"#f2f1f0"},
+    {"type": "color_background","id": "cl_bg_gradient","label": "Background gradient"},
+
+    {"type": "header","content": "+ Design pc options"},
+    {"type": "text","id": "mg","label": "Margin","info":"Margin top, margin right, margin bottom, margin left. If you not use to blank","default": "0px,0px,30px,0px"},
+    {"type": "text","id": "pd","label": "Padding","info":"Padding top, padding right, padding bottom, padding left. If you not use to blank","default": "18px,0px,18px,0px"},
+
+    {"type": "header","content": "+ Design Tablet Options"},
+    {"type": "text","id": "mg_tb","label": "Margin","default": "0px,0px,30px,0px"},
+    {"type": "text","id": "pd_tb","label": "Padding","default": "18px,0px,18px,0px"},
+
+    {"type": "header","content": "+ Design mobile options"},
+    {"type": "text","id": "mg_mb","label": "Margin","default": "0px,0px,30px,0px"},
+    {"type": "text","id": "pd_mb","label": "Padding","default": "18px,0px,18px,0px"}
+  ],
+  "presets": [
+    {
+      "name": "Breadcrumb",
+      "settings": {
+        "back_next_pr": true,
+        "cl_bg": "#f2f1f0",
+        "cl_link": "#222222"
+      }
+    }
+  ]
+}
+{% endschema %}

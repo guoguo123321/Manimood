@@ -1,0 +1,299 @@
+{%- liquid
+  assign se_stts = section.settings
+  assign faqs = se_stts.faqs
+  if faqs == blank
+    assign faqs = product.metafields.custom.faqs.value
+  endif
+  if se_stts.layout == 't4s-container-wrap'
+    assign html_layout = '<div class="t4s-container">__</div>' | split: '__'
+  elsif se_stts.layout == 'custom-container'
+    assign html_layout = '<div class="custom-container">__</div>' | split: '__'
+  else
+    assign html_layout = '__' | split: '__'
+  endif
+-%}
+{%- if faqs != blank or request.design_mode -%}
+  {{ 'section.css' | asset_url | stylesheet_tag }}
+  <div class="faqs-box t4s-section-inner" {% render 'section_style', se_stts: se_stts, append_style: '' %}>
+    <div class="faqs-layout" style="--custom_container: {{ se_stts.custom_container | escape }};">
+      {{- html_layout[0] -}}
+      {%- render 'section_tophead', se_stts: se_stts -%}
+      <div class="faqs-list">
+        {%- for faq in faqs -%}
+          {%- liquid
+            assign faq_image = faq.image.value
+            assign faq_icon = faq.icon.value
+            assign faq_title = faq.title.value
+            assign faq_content = faq.content.value
+          -%}
+          {%- if faq_title != blank -%}
+            <product-fold class="product-fold faqs-item">
+              <details>
+                <summary class="product-fold__summary" id="FaqTitle-{{ section.id }}-{{ forloop.index }}">
+                  <span class="faqs-question">
+                    {%- if faq_image != blank -%}
+                      <span class="faqs-media" aria-hidden="true">{{ faq_image | image_url: width: 96 | image_tag: width: 48, height: 48, loading: 'lazy', alt: '' }}</span>
+                    {%- elsif faq_icon != blank -%}
+                      <span class="faqs-media" aria-hidden="true">{{ faq_icon }}</span>
+                    {%- endif -%}
+                    <span>{{ faq_title | escape }}</span>
+                  </span>
+                  <svg class="product-fold__icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                </summary>
+                <div class="product-fold__panel" role="region" aria-labelledby="FaqTitle-{{ section.id }}-{{ forloop.index }}">
+                  <div class="product-fold__content faqs-answer">{{ faq_content | escape | newline_to_br }}</div>
+                </div>
+              </details>
+            </product-fold>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+      {{- html_layout[1] -}}
+    </div>
+  </div>
+  <script src="{{ 'product-fold.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
+{% schema %}
+{
+  "name": "Faqs",
+  "class": "shopify-faqs",
+  "tag": "section",
+  "settings": [
+    {
+      "info": "Select FAQ entries or connect a product metaobject list dynamic source. Fill Image or Icon (SVG), not both; Image takes priority.",
+      "metaobject_type": "faqs",
+      "type": "metaobject_list",
+      "limit": 50,
+      "label": "FAQs",
+      "id": "faqs"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "layout",
+      "default": "t4s-container-wrap",
+      "options": [
+        {
+          "label": "Wrapped container",
+          "value": "t4s-container-wrap"
+        },
+        {
+          "label": "Full width",
+          "value": "t4s-container-fluid"
+        },
+        {
+          "label": "custom container",
+          "value": "custom-container"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "id": "custom_container",
+      "label": "custom container",
+      "default": "1200px",
+      "visible_if": "{{ section.settings.layout == 'custom-container' }}"
+    },
+    {
+      "type": "select",
+      "id": "design_heading",
+      "label": "+ Design heading",
+      "default": "1",
+      "options": [
+        {
+          "value": "1",
+          "label": "Design 01"
+        },
+        {
+          "value": "2",
+          "label": "Design 02"
+        },
+        {
+          "value": "3",
+          "label": "Design 03"
+        },
+        {
+          "value": "4",
+          "label": "Design 04"
+        },
+        {
+          "value": "5",
+          "label": "Design 05"
+        },
+        {
+          "value": "6",
+          "label": "Design 06 (width line-awesome)"
+        },
+        {
+          "value": "7",
+          "label": "Design 07"
+        },
+        {
+          "value": "8",
+          "label": "Design 08"
+        },
+        {
+          "value": "9",
+          "label": "Design 09"
+        },
+        {
+          "value": "10",
+          "label": "Design 10"
+        },
+        {
+          "value": "11",
+          "label": "Design 11"
+        },
+        {
+          "value": "12",
+          "label": "Design 12"
+        },
+        {
+          "value": "13",
+          "label": "Design 13"
+        },
+        {
+          "value": "14",
+          "label": "Design 14"
+        },
+        {
+          "value": "15",
+          "label": "Design 15"
+        },
+        {
+          "value": "16",
+          "label": "Design 16"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "heading_align",
+      "label": "+ Heading align",
+      "default": "t4s-text-center",
+      "options": [
+        {
+          "value": "t4s-text-start",
+          "label": "Left"
+        },
+        {
+          "value": "t4s-text-center",
+          "label": "Center"
+        },
+        {
+          "value": "t4s-text-end",
+          "label": "Right"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "heading_fontf",
+      "label": "Font family",
+      "default": "4",
+      "options": [
+        {
+          "label": "Inherit",
+          "value": "inherit"
+        },
+        {
+          "label": "Font family #1",
+          "value": "1"
+        },
+        {
+          "label": "Font family #2",
+          "value": "2"
+        },
+        {
+          "label": "Font family #3",
+          "value": "3"
+        },
+        {
+          "label": "Font family #4(Butler-Bold)",
+          "value": "4"
+        }
+      ]
+    },
+    {
+      "type": "html",
+      "id": "top_heading",
+      "label": "+ Heading",
+      "default": "FAQs"
+    },
+    {
+      "type": "text",
+      "id": "icon_heading",
+      "label": "Enter a icon name on heading",
+      "info": "Only used for design 6 [LineAwesome]()",
+      "default": "las la-gem"
+    },
+    {
+      "type": "number",
+      "id": "tophead_mb",
+      "label": "+ Space bottom (px)",
+      "info": "The vertical spacing between heading and content",
+      "default": 40
+    },
+    {
+      "type": "color",
+      "id": "cl_bg",
+      "label": "bg_color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color_background",
+      "id": "cl_bg_gradient",
+      "label": "Background gradient"
+    },
+    {
+      "type": "text",
+      "id": "mg",
+      "label": "Margin",
+      "info": "Margin top, margin right, margin bottom, margin left. If you not use to blank",
+      "default": "0px,0px,0px,0px"
+    },
+    {
+      "type": "text",
+      "id": "pd",
+      "label": "Padding",
+      "info": "Padding top, padding right, padding bottom, padding left. If you not use to blank",
+      "default": "0px,0px,70px,0px"
+    },
+    {
+      "type": "text",
+      "id": "mg_tb",
+      "label": "Margin",
+      "default": "0px,0px,0px,0px"
+    },
+    {
+      "type": "text",
+      "id": "pd_tb",
+      "label": "Padding",
+      "default": "0px,0px,50px,0px"
+    },
+    {
+      "type": "text",
+      "id": "mg_mb",
+      "label": "Margin",
+      "default": "0px,0px,0px,0px"
+    },
+    {
+      "type": "text",
+      "id": "pd_mb",
+      "label": "Padding",
+      "default": "0px,0px,30px,0px"
+    },
+    {
+      "id": "top_subheading",
+      "type": "textarea",
+      "label": "+ Subheading"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Faqs",
+      "category": "LG"
+    }
+  ]
+}
+{% endschema %}

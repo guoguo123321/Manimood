@@ -1,0 +1,521 @@
+<!-- sections/announcement-bar.liquid -->
+{%- if section.settings.show_announcement -%}
+  {%- liquid
+    assign theme_name = 'kalles'
+    assign label = 'sections.announcement.label' | t
+    assign sid = section.id
+    assign show_language = section.settings.show_language
+    assign show_social = section.settings.show_social
+    assign follow_social = true
+    assign share_image = settings.share_image | default: page_image | default: settings.logo
+    assign cl_arrow = section.settings.cl_arrow | default: section.settings.cl
+    assign cl_arrow_hover = section.settings.cl_arrow_hover | default: cl_arrow
+  -%}
+  {%- capture cap_btn -%}{%- if section.settings.close != '0' -%}<div class="t4s-col-item t4s-col-auto t4s-d-none t4s-d-md-block"><button class="t4s-announcement-bar__close t4s-op-0"><svg role="presentation" class="t4s-iconsvg-close" viewBox="0 0 16 14"><path d="M15 0L1 14m14 0L1 0" stroke="currentColor" fill="none" fill-rule="evenodd"></path></svg> {{ 'sections.announcement.close' | t }}</button></div>{%- endif -%}{%- endcapture -%}
+  {{ 'pre_flickityt4s.min.css' | asset_url | stylesheet_tag }}
+  {%- if show_language -%}
+    <link rel="stylesheet" href="{{ 'base_drop.min.css' | asset_url }}" media="all">
+  {%- endif -%}
+  {%- if show_social -%}
+    {{ 'icon-social.css' | asset_url | stylesheet_tag }}
+  {%- endif -%}
+  {%- style -%}
+    {%- assign bg_op = section.settings.bg_op | divided_by: 100.0 -%}
+    .t4s-announcement-bar {
+      --ann-h: {{ section.settings.height }}px;
+      --ann-arrow-cl: {{ cl_arrow }};
+      --ann-arrow-cl-hover: {{ cl_arrow_hover }};
+      background-color: {{ section.settings.bg | color_modify: 'alpha', bg_op }};
+      height: var(--ann-h);
+      min-height: var(--ann-h);
+      max-height: var(--ann-h);
+      font-size: {{ section.settings.fontsize }}px;
+      overflow: visible;
+    }
+    .t4s-announcement-bar__grid,
+    .t4s-announcement-bar__promo,
+    .t4s-announcement-bar__wrap {
+      height: var(--ann-h);
+      min-height: var(--ann-h);
+    }
+    .t4s-announcement-bar__wrap,
+    .t4s-announcement-bar__wrap a,
+    .t4s-announcement-bar__item,
+    .t4s-announcement-bar__item a { color: {{ section.settings.cl }}; }
+    .t4s-announcement-bar__item p { margin-bottom: 0; }
+    .t4s-announcement-bar__item p a { z-index: 5; position: relative; }
+    .t4s-announcement-bar__item strong { font-size: 14px; font-weight: 600; }
+    .t4s-announcement-bar__close { color: {{ section.settings.cl_btn }}; padding: 0; background-color: transparent; line-height: 1; transition: .2s; font-size: {{ section.settings.fontsize }}px; }
+    .t4s-announcement-bar__close:focus { background-color: transparent !important; opacity: .7; color: {{ section.settings.cl_btn }} !important; }
+    .t4s-announcement-bar.t4s-type-close-1 .t4s-iconsvg-close { width: 9px; height: 9px; stroke-width: 2px; }
+    .t4s-announcement-bar:not(.t4s-type-close-1) .t4s-iconsvg-close { width: 15px; height: 15px; stroke-width: 1.5px; }
+    .t4s-announcement-bar.t4s-type-close-2 .t4s-announcement-bar__close { font-size: 0 !important; }
+    .t4s-announcement-bar.t4s-type-close-3 .t4s-iconsvg-close { display: none !important; }
+    .t4s-announcement-bar__close.t4s-op-0 { opacity: 0 !important; }
+    svg.t4s-icon-arrow { width: 12px; display: inline-block; }
+    .t4s-announcement-bar .t4s-countdown-enabled { display: inline-block; }
+    .t4s-announcement-bar__languages,
+    .t4s-announcement-bar__languages button { color: {{ section.settings.cl }}; }
+    .t4s-announcement-bar__languages .t4s-dropdown__wrapper {
+      background: var(--t4s-body-background, #fff);
+      padding: 0 12px;
+      min-width: 120px;
+      max-width: 260px;
+      width: max-content;
+    }
+    .t4s-announcement-bar__languages .t4s-drop-arrow { background-color: var(--t4s-body-background, #fff); }
+    .t4s-announcement-bar__languages .t4s-dropdown__wrapper button {
+      color: var(--text-color, #222);
+      background: transparent;
+      margin: 0;
+      padding: 8px 0;
+      display: block;
+      width: 100%;
+      text-align: start;
+      text-transform: none;
+      white-space: nowrap;
+      line-height: 1.35;
+    }
+    .t4s-announcement-bar__languages .t4s-dropdown__wrapper button + button { border-top: 1px solid rgba(0,0,0,.06); }
+    .t4s-announcement-bar__languages .t4s-dropdown__wrapper button.is--selected { color: var(--accent-color, #846E45); }
+    .t4s-announcement-bar__social .t4s-socials a { color: {{ section.settings.cl }}; }
+    .t4s-announcement-bar--marquee .t4s-announcement-bar__item { vertical-align: middle; }
+    .t4s-announcement-bar-desgign-marquee { --spacing-item-marquee: 20px; }
+    .t4s-announcement-bar-desgign-marquee .t4s-container,
+    .t4s-announcement-bar-desgign-marquee .t4s-announcement-bar__wrap { padding-inline-start: 0; padding-inline-end: 0; }
+    .t4s-announcement-bar-desgign-marquee .t4s-announcement-bar__item {
+      padding-inline-start: calc(var(--spacing-item-marquee) / 2);
+      padding-inline-end: calc(var(--spacing-item-marquee) / 2);
+    }
+    .t4s-announcement---marquee-icon span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: {{ section.settings.cl }};
+      display: block;
+    }
+    .t4s-announcement-bar--marquee-content { gap: var(--spacing-item-marquee); }
+    @media (min-width: 1025px) {
+      .t4s-announcement-bar-desgign-marquee { --spacing-item-marquee: 30px; }
+    }
+    @media (-moz-touch-enabled: 0), (hover: hover) and (min-width: 1025px) {
+      .t4s-announcement-bar__item:hover .t4s-icon-arrow { transform: translateX(0.25rem); }
+      .t4s-announcement-bar__close:hover { background-color: transparent !important; opacity: .7; color: {{ section.settings.cl_btn }} !important; }
+      .t4s-announcement-bar__item p a:hover { opacity: .7; }
+    }
+  {%- endstyle -%}
+
+<svg class="t4s-d-none"><symbol id="icon-{{ section.id }}" viewBox="0 0 14 10" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.537.808a.5.5 0 01.817-.162l4 4a.5.5 0 010 .708l-4 4a.5.5 0 11-.708-.708L11.793 5.5H1a.5.5 0 010-1h10.793L8.646 1.354a.5.5 0 01-.109-.546z" fill="currentColor"></path></symbol></svg>
+{%- capture cap_arrow %}<svg class="t4s-icon t4s-icon-arrow" width="13" viewBox="0 0 14 10" fill="none" aria-hidden="true" focusable="false" role="presentation" xmlns="http://www.w3.org/2000/svg"><use href="#icon-{{ section.id }}"/></svg>{% endcapture -%}
+
+  <div aria-hidden="false" class="t4s-announcement-bar t4s-announcement-bar-desgign-{{ section.settings.design }} t4s-pr t4s-type-close-{{ section.settings.close }}" data-ver='{{ section.settings.version }}_nt' data-date='{{ section.settings.date }}'>
+    <div class="t4s-container">
+      <div class="t4s-announcement-bar__grid">
+        <div class="t4s-announcement-bar__side t4s-announcement-bar__side--left">
+          {%- if show_language -%}
+            <div class="t4s-announcement-bar__languages">
+              {%- render 'languages', sid: sid, class_mb: 'is-style-mb--false', drop_pos: 'bottom-start' -%}
+            </div>
+          {%- endif -%}
+        </div>
+
+        <div class="t4s-announcement-bar__center">
+          {%- if section.blocks.size > 0 -%}
+            {%- if section.settings.design == 'slider' -%}
+              <div class="t4s-announcement-bar__wrap t4s-announcement-bar-slider">
+                <div class="t4s-announcement-bar__promo" data-announcement-promo>
+                  {%- if section.settings.show_arrows and section.blocks.size > 1 -%}
+                  <button type="button" class="t4s-announcement-bar__nav t4s-announcement-bar__nav--prev" data-announcement-prev aria-label="Previous announcement">
+                    <svg viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M7.5 2.25L3.75 6l3.75 3.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  {%- endif -%}
+                  <div class="t4s-announcement-bar__promo-slider t4s-d-flex t4s-align-items-center t4s-row t4s-g-0 flickityt4s" data-flickityt4s-js='{ "cellAlign": "left","imagesLoaded": 0,"lazyLoad": 0,"freeScroll": 0,"wrapAround": true,"autoPlay" : {{ section.settings.au_time | times: 1000 }},"pauseAutoPlayOnHover" : true, "prevNextButtons": false,"pageDots": false, "contain" : 0,"adaptiveHeight" : 0,"dragThreshold" : 5,"percentPosition": 1,"groupCells": false }'>
+                    {%- for block in section.blocks -%}
+                      {%- assign bk_stts = block.settings -%}
+                      {%- capture cap_date %}{% assign se_dayx = bk_stts.dayx %}<span data-refresh-owl data-countdown-t4s data-loop="{% if se_dayx > 0 %}true{% else %}false{% endif %}" data-date="{{ bk_stts.countdown }}" data-dayl="{{ se_dayx }}">%D {{ bk_stts.txt_day }} %H:%M:%S</span>{% endcapture -%}
+                      <div id="b_{{ block.id }}" {{ block.shopify_attributes }} data-select-flickity class="t4s-col-item t4s-announcement-bar__item t4s-pr t4s-rte{% unless block.settings.adding_border %}--list{% endunless %}">
+                      {%- if bk_stts.link != blank -%}<a href="{{ bk_stts.link }}" aria-label="{{ label }}" class="t4s-full-width-link"></a>{%- endif -%}
+                      {{- bk_stts.content | replace: '[countdown]', cap_date | replace: '[icon_arrow]', cap_arrow -}}
+                      </div>
+                    {%- endfor -%}
+                  </div>
+                  {%- if section.settings.show_arrows and section.blocks.size > 1 -%}
+                  <button type="button" class="t4s-announcement-bar__nav t4s-announcement-bar__nav--next" data-announcement-next aria-label="Next announcement">
+                    <svg viewBox="0 0 12 12" fill="none" aria-hidden="true" focusable="false"><path d="M4.5 2.25L8.25 6 4.5 9.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </button>
+                  {%- endif -%}
+                </div>
+              </div>
+              {%- if section.settings.show_arrows and section.blocks.size > 1 -%}
+              <script>
+                (function() {
+                  var root = document.querySelector('#shopify-section-{{ section.id }} [data-announcement-promo]');
+                  if (!root) return;
+                  var slider = root.querySelector('[data-flickityt4s-js]');
+                  var prev = root.querySelector('[data-announcement-prev]');
+                  var next = root.querySelector('[data-announcement-next]');
+                  function getFlkty() {
+                    if (!slider) return null;
+                    if (window.jQuery_T4NT) {
+                      return window.jQuery_T4NT(slider).data('flickityt4s') || null;
+                    }
+                    return slider.flickityt4s || null;
+                  }
+                  function go(dir) {
+                    var flkty = getFlkty();
+                    if (!flkty) return;
+                    if (dir < 0) flkty.previous();
+                    else flkty.next();
+                  }
+                  if (prev) prev.addEventListener('click', function(e) { e.preventDefault(); go(-1); });
+                  if (next) next.addEventListener('click', function(e) { e.preventDefault(); go(1); });
+                })();
+              </script>
+              {%- endif -%}
+            {%- else -%}
+              {{ 't4s-scrolling-text.css' | asset_url | stylesheet_tag }}
+              <div class="t4s-announcement-bar__wrap t4s-announcement-bar--marquee t4s-d-flex t4s-align-items-center t4s-oh">
+                <div class="t4s-marquee t4s-marquee--{{ section.settings.direction }} t4s-marquee--pause{{ section.settings.pause_when_hover }}" style="--marquee-delay: {{ section.settings.speed }}s;">
+                  <div class="t4s-marquee__item">
+                    {%- for block in section.blocks -%}
+                      {%- assign bk_stts = block.settings -%}
+                      {%- capture cap_date %}{% assign se_dayx = bk_stts.dayx %}<span data-refresh-owl data-countdown-t4s data-loop="{% if se_dayx > 0 %}true{% else %}false{% endif %}" data-date="{{ bk_stts.countdown }}" data-dayl="{{ se_dayx }}">%D {{ bk_stts.txt_day }} %H:%M:%S</span>{% endcapture -%}
+                      <div class="t4s-announcement-bar__item t4s-d-inline-block t4s-pr t4s-oh t4s-rte{% unless block.settings.adding_border %}--list{% endunless %}">
+                        <div class="t4s-announcement-bar--marquee-content t4s-d-flex t4s-align-items-center">
+                          <div class="t4s-announcement---marquee-icon"><span></span></div>
+                          <div class="t4s-announcement---marquee-text">
+                            {{- bk_stts.content | replace: '[countdown]', cap_date | replace: '[icon_arrow]', cap_arrow -}}
+                          </div>
+                          {%- if bk_stts.link != blank -%}<a href="{{ bk_stts.link }}" aria-label="{{ label }}" class="t4s-full-width-link"></a>{%- endif -%}
+                        </div>
+                      </div>
+                    {%- endfor -%}
+                  </div>
+                </div>
+              </div>
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+
+        <div class="t4s-announcement-bar__side t4s-announcement-bar__side--right">
+          {%- if show_social -%}
+            <div class="t4s-announcement-bar__social">
+              {%- render 'social_sharing', style: 1, use_color_set: false, size: 'extra-small', space_h_item: 0, space_h_item_mb: 0, space_v_item: 0, space_v_item_mb: 0, share_permalink: shop.url, share_title: shop.name, share_image: share_image, follow_social: follow_social -%}
+            </div>
+          {%- endif -%}
+          {{- cap_btn | replace: 't4s-op-0', 't4s-z-100' | remove: ' t4s-d-none t4s-d-md-block' -}}
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>try { if (document.cookie.indexOf('t4s_announcement_{{ theme_name }}_{{ section.settings.version }}_nt') > -1) { document.getElementById('shopify-section-announcement-bar').setAttribute("aria-hidden", true);document.getElementsByClassName('t4s-announcement-bar')[0].setAttribute("aria-hidden", true);document.getElementsByClassName('t4s-announcement-bar')[0].classList.add('t4s-d-none'); } }catch(err) {}</script>
+{%- else -%}
+<script>try { if (window.Shopify && !Shopify.designMode) { document.getElementById('shopify-section-announcement-bar').remove() } else { document.getElementById('shopify-section-announcement-bar').setAttribute("aria-hidden", true) } }catch(err) {}</script>
+{%- endif -%}
+
+{% schema %}
+  {
+    "name": "Announcement bar",
+    "class": "t4-section t4-section-announcement-bar t4s_bk_flickity t4s_tp_cd t4s_tp_marquee",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_announcement",
+        "label": "Show announcement",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_language",
+        "label": "Show language selector",
+        "default": true,
+        "info": "Left side. Always shown when enabled, even with only 1 language."
+      },
+      {
+        "type": "checkbox",
+        "id": "show_social",
+        "label": "Show social icons",
+        "default": true,
+        "info": "Right side. Uses theme social media links."
+      },
+      {
+        "type": "select",
+        "id": "design",
+        "label": "Design",
+        "default": "slider",
+        "options": [
+          {
+            "value": "slider",
+            "label": "Slider"
+          },
+          {
+            "value": "marquee",
+            "label": "Marquee"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "effect",
+        "label": "Effect slider",
+        "default": "1",
+        "options": [
+          {
+            "value": "1",
+            "label": "Fade"
+          },
+          {
+            "value": "0",
+            "label": "Slide"
+          },
+          {
+            "value": "fade t4s-slide-eff-translate",
+            "label": "Translate"
+          }
+        ],
+        "visible_if": "{{ section.settings.design == 'slider' }}"
+      },
+      {
+        "type": "range",
+        "id": "au_time",
+        "min": 0,
+        "max": 30,
+        "step": 0.5,
+        "label": "Autoplay speed in second.",
+        "info": "Set is '0' to disable autoplay.",
+        "unit": "sec",
+        "default": 7,
+        "visible_if": "{{ section.settings.design == 'slider' }}"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_arrows",
+        "label": "Show prev/next arrows",
+        "default": true,
+        "info": "Promo carousel arrows like shangmengnails.com",
+        "visible_if": "{{ section.settings.design == 'slider' }}"
+      },
+      {
+        "type": "color",
+        "id": "cl_arrow",
+        "label": "Arrow color",
+        "default": "#111111",
+        "visible_if": "{{ section.settings.design == 'slider' and section.settings.show_arrows }}"
+      },
+      {
+        "type": "color",
+        "id": "cl_arrow_hover",
+        "label": "Arrow hover color",
+        "default": "#846E45",
+        "visible_if": "{{ section.settings.design == 'slider' and section.settings.show_arrows }}"
+      },
+      {
+        "type": "range",
+        "id": "speed",
+        "min": 0.5,
+        "max": 50,
+        "step": 0.5,
+        "unit": "s",
+        "default": 15,
+        "label": "Marquee speed",
+        "visible_if": "{{ section.settings.design == 'marquee' }}"
+      },
+      {
+        "type": "checkbox",
+        "id": "pause_when_hover",
+        "default": false,
+        "label": "Pause when hover",
+        "visible_if": "{{ section.settings.design == 'marquee' }}"
+      },
+      {
+        "type": "select",
+        "id": "direction",
+        "default": "rtl",
+        "label": "Marquee direction",
+        "options": [
+          {
+            "value": "rtl",
+            "label": "Right to left"
+          },
+          {
+            "value": "ltr",
+            "label": "Left to right"
+          }
+        ],
+        "visible_if": "{{ section.settings.design == 'marquee' }}"
+      },
+      {
+        "type": "header",
+        "content": "+ Other settings"
+      },
+      {
+        "type": "range",
+        "id": "height",
+        "label": "Min height",
+        "default": 41,
+        "min": 20,
+        "max": 120,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "type": "range",
+        "id": "fontsize",
+        "label": "Font size",
+        "default": 12,
+        "min": 12,
+        "max": 18,
+        "step": 0.5,
+        "unit": "px"
+      },
+      {
+        "type": "color",
+        "id": "cl",
+        "label": "Text color",
+        "default": "#846E45"
+      },
+      {
+        "type": "color",
+        "id": "bg",
+        "label": "Background color",
+        "default": "#F0EBE3"
+      },
+      {
+        "type": "range",
+        "id": "bg_op",
+        "label": "Background opacity",
+        "default": 100,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "%"
+      },
+      {
+        "type": "select",
+        "id": "close",
+        "label": "Button close",
+        "default": "0",
+        "options": [
+          {
+            "value": "0",
+            "label": "Disable"
+          },
+          {
+            "value": "1",
+            "label": "Icon & text"
+          },
+          {
+            "value": "2",
+            "label": "Only icon"
+          },
+          {
+            "value": "3",
+            "label": "Only text"
+          }
+        ]
+      },
+      {
+        "type": "color",
+        "id": "cl_btn",
+        "label": "Button close color",
+        "default": "#846E45"
+      },
+      {
+        "type": "radio",
+        "id": "version",
+        "label": "Announcement version",
+        "info": "If you apply any changes to your announcement settings or content you might want to force the announcement to all visitor who already close it again. In this case, you just need to change the announcement version.",
+        "default": "1",
+        "options": [
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          }
+        ]
+      },
+      {
+        "type": "range",
+        "id": "date",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "day",
+        "label": "Header banner expires",
+        "info": "You will be able to specify when to expire the cookie. Once you click the \"CLOSE\" button",
+        "default": 60
+      }
+    ],
+    "blocks": [
+      {
+        "type": "announcement",
+        "name": "Announcement",
+        "limit": 10,
+        "settings": [
+          {
+            "type": "url",
+            "id": "link",
+            "label": "Banner link"
+          },
+          {
+            "type": "richtext",
+            "id": "content",
+            "label": "Banner content",
+            "default": "<p>Today deal sale off 70%. End in [countdown]. Hurry Up!! [icon_arrow]</p>",
+            "info": "Place here text you want to see in the header banner. You can use shortocdes: [countdown], [icon_arrow]"
+          },
+          {
+            "type": "checkbox",
+            "id": "adding_border",
+            "label": "Adding a bottom border on link",
+            "default": false,
+            "visible_if": "{{ block.settings.content contains 'http:' }}"
+          },
+          {
+            "type": "text",
+            "id": "countdown",
+            "label": "Date countdown",
+            "default": "2023/12/26",
+            "info": "Use shortocdes: [countdown]. Countdown to the end sale date will be shown.( 2023/12/26 or 2023/12/26 20:00:30 )",
+            "visible_if": "{{ block.settings.content contains '[countdown]' }}"
+          },
+          {
+            "type": "text",
+            "id": "txt_day",
+            "label": "Text day countdown",
+            "default": "days",
+            "visible_if": "{{ block.settings.content contains '[countdown]' }}"
+          },
+          {
+            "type": "range",
+            "id": "dayx",
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "label": "Reset countdown every x days from an initial date.",
+            "info": "Set is '0' to disable reset countdown.",
+            "unit": "day",
+            "default": 0,
+            "visible_if": "{{ block.settings.content contains '[countdown]' }}"
+          }
+        ]
+      }
+    ],
+    "default": {
+      "blocks": [
+        {
+          "type": "announcement"
+        },
+        {
+          "type": "announcement"
+        },
+        {
+          "type": "announcement"
+        }
+      ]
+    }
+  }
+{% endschema %}

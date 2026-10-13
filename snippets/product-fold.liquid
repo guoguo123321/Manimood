@@ -1,0 +1,19 @@
+{% doc %}
+  Renders an independently expandable product Fold.
+  @param {object} block - The section block.
+  @param {object} section - The product section.
+{% enddoc %}
+{%- assign fold_content = block.settings.liquid | strip -%}
+{%- if fold_content != blank -%}
+  <product-fold class="product-fold product-fold--{{ block.settings.style_type }} t4s-product-info__item" {{ block.shopify_attributes }}>
+    <details>
+      <summary class="product-fold__summary" id="FoldTitle-{{ section.id }}-{{ block.id }}">
+        <span>{{ block.settings.title | escape }}</span>
+        <svg class="product-fold__icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="m3 6 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      </summary>
+      <div class="product-fold__panel" role="region" aria-labelledby="FoldTitle-{{ section.id }}-{{ block.id }}">
+        <div class="product-fold__content t4s-rte">{{ block.settings.liquid }}</div>
+      </div>
+    </details>
+  </product-fold>
+{%- endif -%}

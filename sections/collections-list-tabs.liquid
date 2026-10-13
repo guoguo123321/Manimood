@@ -1,0 +1,583 @@
+{% liquid
+  assign se_stts = section.settings
+  assign stt_layout = se_stts.layout
+  assign limit = se_stts.limit | default: 8
+  assign b_effect = se_stts.b_effect
+  assign img_effect = se_stts.img_effect
+  assign display_layout = se_stts.display_layout | default: 'carousel'
+  assign is_grid = false
+  if display_layout == 'grid'
+    assign is_grid = true
+  endif
+  assign visible_dk = se_stts.col_dk | times: 2
+  assign visible_tb = se_stts.col_tb | times: 2
+  assign visible_mb = se_stts.col_mb | times: 2
+  assign view_all_label = se_stts.head_btn_label | default: 'View All'
+  assign cat_blocks = section.blocks | where: 'type', 'cat'
+  if stt_layout == 't4s-container-wrap'
+    assign html_layout = '<div class="t4s-container">__</div>' | split: '__'
+  elsif stt_layout == 'custom-container'
+    assign html_layout = '<div class="custom-container">__</div>' | split: '__'
+  else
+    assign html_layout = '__' | split: '__'
+  endif
+%}
+{{ 'section.css' | asset_url | stylesheet_tag }}
+{{ 'top-head.css' | asset_url | stylesheet_tag }}
+{%- unless is_grid -%}
+{{ 'swiper.css' | asset_url | stylesheet_tag }}
+{%- endunless -%}
+{{ 'custom-effect.css' | asset_url | stylesheet_tag }}
+{%- if se_stts.layout == 'custom-container' %}
+<style>
+  .{{ section.id }} .custom-container{max-width:{{ se_stts.custom_container }};margin:0 auto;}
+</style>
+{%- endif -%}
+<style>
+  .{{ section.id }}{--clt-tab-cl:{{ se_stts.tab_cl }};--clt-tab-cl-active:{{ se_stts.tab_cl_active }};--clt-tab-bd:{{ se_stts.tab_bd }};--clt-tab-bd-active:{{ se_stts.tab_bd_active }};--clt-tabs-mb:{{ se_stts.tabs_mb }}px;}
+</style>
+<div class="{{ section.id }} collections-list-tabs-box t4s-section-inner collections-list-tabs--{{ display_layout }}" {% render 'section_style', se_stts: se_stts -%}>
+  {{- html_layout[0] -}}
+  {%- render 'section_tophead', se_stts: se_stts -%}
+
+  {%- if cat_blocks.size > 0 -%}
+    {%- assign clt_tab_index = 0 -%}
+    {%- assign clt_first_tab = true -%}
+    <div class="collections-list-tabs-tabs {{ se_stts.heading_align }}" data-collections-list-tabs>
+      <div class="collections-list-tabs-tabs__list" role="tablist" aria-label="{{ se_stts.top_heading | default: 'Best Seller' | escape }}">
+        {%- for block in cat_blocks -%}
+          {%- assign bk_stts = block.settings -%}
+          {%- assign tab_label = bk_stts.title | default: bk_stts.collection.title | default: 'Category' -%}
+          {%- if bk_stts.link_only and bk_stts.link != blank -%}
+            <a class="collections-list-tabs-tabs__item collections-list-tabs-tabs__item--link" href="{{ bk_stts.link }}" {{ block.shopify_attributes }}>{{ tab_label }}</a>
+          {%- else -%}
+            <button
+              type="button"
+              class="collections-list-tabs-tabs__item{% if clt_first_tab %} is-active{% endif %}"
+              role="tab"
+              id="clt-tab-{{ block.id }}"
+              aria-selected="{% if clt_first_tab %}true{% else %}false{% endif %}"
+              aria-controls="clt-panel-{{ block.id }}"
+              data-clt-tab
+              data-clt-index="{{ clt_tab_index }}"
+              {{ block.shopify_attributes }}
+            >{{ tab_label }}</button>
+            {%- assign clt_tab_index = clt_tab_index | plus: 1 -%}
+            {%- assign clt_first_tab = false -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  {%- endif -%}
+
+  <div class="collections-list-tabs-container{% unless is_grid %} show-pagination-pc-{{ se_stts.show_pagination_pc }} show-navigation-pc-{{ se_stts.show_navigation_pc }} show-pagination-mb-{{ se_stts.show_pagination_mb }} show-navigation-mb-{{ se_stts.show_navigation_mb }}{% endunless %}" style="--color-arrow:{{ se_stts.color_arrow }};--color-arrow-hover:{{ se_stts.color_arrow_hover }};--col-dk:{{ se_stts.col_dk }};--col-tb:{{ se_stts.col_tb }};--col-mb:{{ se_stts.col_mb }};--space-h:{{ se_stts.space_h_item }}px;--space-h-mb:{{ se_stts.space_h_item_mb }}px;--space-v:{{ se_stts.space_v_item | default: se_stts.space_h_item }}px;--space-v-mb:{{ se_stts.space_v_item_mb | default: se_stts.space_h_item_mb }}px;">
+    {%- if cat_blocks.size > 0 -%}
+      {%- assign clt_panel_index = 0 -%}
+      {%- assign clt_first_panel = true -%}
+      {%- for block in cat_blocks -%}
+        {%- assign bk_stts = block.settings -%}
+        {%- if bk_stts.link_only -%}{%- continue -%}{%- endif -%}
+        {%- assign collection = bk_stts.collection -%}
+        <div
+          class="collections-list-tabs-panel{% if clt_first_panel %} is-active{% endif %}"
+          role="tabpanel"
+          id="clt-panel-{{ block.id }}"
+          aria-labelledby="clt-tab-{{ block.id }}"
+          data-clt-panel
+          data-clt-index="{{ clt_panel_index }}"
+          {% unless clt_first_panel %}hidden{% endunless %}
+        >
+          {%- if is_grid -%}
+            {%- liquid
+              assign view_all_url = collection.url | default: se_stts.head_btn_url
+              assign show_view_all = false
+              assign view_all_always = false
+              if collection != blank
+                if collection.products_count > visible_dk or collection.products_count > limit
+                  assign show_view_all = true
+                  assign view_all_always = true
+                endif
+              endif
+            -%}
+            <div class="collections-list-tabs-grid" data-clt-grid>
+              <div class="collections-list-tabs-grid__list">
+                {%- if collection != blank and collection.products_count > 0 -%}
+                  {%- for product in collection.products limit: limit -%}
+                    {%- liquid
+                      assign extra_class = ''
+                      if forloop.index > visible_mb
+                        assign extra_class = extra_class | append: ' is-extra-mb'
+                      endif
+                      if forloop.index > visible_tb
+                        assign extra_class = extra_class | append: ' is-extra-tb'
+                      endif
+                      if forloop.index > visible_dk
+                        assign extra_class = extra_class | append: ' is-extra-dk'
+                      endif
+                      if extra_class != blank
+                        assign show_view_all = true
+                      endif
+                    -%}
+                    {% render 'collections-list-tabs-product', product: product, img_effect: img_effect, b_effect: b_effect, animation_order: forloop.index0, extra_class: extra_class %}
+                  {%- endfor -%}
+                {%- else -%}
+                  {%- for i in (1..4) -%}
+                    {% render 'collections-list-tabs-product', is_placeholder: true, img_effect: img_effect, b_effect: b_effect, animation_order: forloop.index0 %}
+                  {%- endfor -%}
+                {%- endif -%}
+              </div>
+              {%- if show_view_all and view_all_url != blank and view_all_label != blank -%}
+                <div class="collections-list-tabs-viewall{% if view_all_always %} is-always{% endif %}">
+                  {{ 'button-style.css' | asset_url | stylesheet_tag }}
+                  <a class="t4s-btn t4s-btn-base t4s-btn-style-{{ se_stts.head_btn_style }} t4s-btn-size-{{ se_stts.head_btn_size }} t4s-btn-icon-{{ se_stts.head_btn_icon }} t4s-btn-color-{{ se_stts.head_btn_cl }}{% if se_stts.head_btn_style == 'default' or se_stts.head_btn_style == 'outline' %} t4s-btn-effect-{{ se_stts.head_btn_effect }}{% endif %}" href="{{ view_all_url }}">
+                    {{ view_all_label }}
+                    {%- if se_stts.head_btn_icon -%}<svg class="t4s-btn-icon" width="14"><use xlink:href="#t4s-icon-btn"></use></svg>{%- endif -%}
+                  </a>
+                </div>
+              {%- endif -%}
+            </div>
+          {%- else -%}
+            <div class="swiper collectionsListTabs" data-clt-swiper>
+              <div class="swiper-wrapper">
+                {%- if collection != blank and collection.products_count > 0 -%}
+                  {%- for product in collection.products limit: limit -%}
+                    <div class="swiper-slide">
+                      {% render 'collections-list-tabs-product', product: product, img_effect: img_effect, b_effect: b_effect, animation_order: forloop.index0 %}
+                    </div>
+                  {%- endfor -%}
+                {%- else -%}
+                  {%- for i in (1..4) -%}
+                    <div class="swiper-slide">
+                      {% render 'collections-list-tabs-product', is_placeholder: true, img_effect: img_effect, b_effect: b_effect, animation_order: forloop.index0 %}
+                    </div>
+                  {%- endfor -%}
+                {%- endif -%}
+              </div>
+            </div>
+            <div class="common-swiper-media">
+              <div class="swiper-pagination common-swiper-pagination collections-list-tabs-pagination" data-clt-pagination></div>
+            </div>
+            <button type="button" class="swiper-button-prev common-prev collections-list-tabs-prev" data-clt-prev aria-label="Previous slide">
+              {% render 'swiper-nav-icon', direction: 'prev', style: 'outline', class: 'logo-list-nav-icon' %}
+            </button>
+            <button type="button" class="swiper-button-next common-next collections-list-tabs-next" data-clt-next aria-label="Next slide">
+              {% render 'swiper-nav-icon', direction: 'next', style: 'outline', class: 'logo-list-nav-icon' %}
+            </button>
+          {%- endif -%}
+        </div>
+        {%- assign clt_panel_index = clt_panel_index | plus: 1 -%}
+        {%- assign clt_first_panel = false -%}
+      {%- endfor -%}
+    {%- else -%}
+      {%- assign collection = se_stts.collection -%}
+      {%- if is_grid -%}
+        {%- liquid
+          assign view_all_url = collection.url | default: se_stts.head_btn_url
+          assign show_view_all = false
+          assign view_all_always = false
+          if collection != blank
+            if collection.products_count > visible_dk or collection.products_count > limit
+              assign show_view_all = true
+              assign view_all_always = true
+            endif
+          endif
+        -%}
+        <div class="collections-list-tabs-grid" data-clt-grid>
+          <div class="collections-list-tabs-grid__list">
+            {%- if collection != blank and collection.products_count > 0 -%}
+              {%- for product in collection.products limit: limit -%}
+                {%- liquid
+                  assign extra_class = ''
+                  if forloop.index > visible_mb
+                    assign extra_class = extra_class | append: ' is-extra-mb'
+                  endif
+                  if forloop.index > visible_tb
+                    assign extra_class = extra_class | append: ' is-extra-tb'
+                  endif
+                  if forloop.index > visible_dk
+                    assign extra_class = extra_class | append: ' is-extra-dk'
+                  endif
+                  if extra_class != blank
+                    assign show_view_all = true
+                  endif
+                -%}
+                {% render 'collections-list-tabs-product', product: product, img_effect: img_effect, b_effect: b_effect, animation_order: forloop.index0, extra_class: extra_class %}
+              {%- endfor -%}
+            {%- else -%}
+              {%- for i in (1..4) -%}
+                {% render 'collections-list-tabs-product', is_placeholder: true, img_effect: img_effect, b_effect: b_effect, animation_order: forloop.index0 %}
+              {%- endfor -%}
+            {%- endif -%}
+          </div>
+          {%- if show_view_all and view_all_url != blank and view_all_label != blank -%}
+            <div class="collections-list-tabs-viewall{% if view_all_always %} is-always{% endif %}">
+              {{ 'button-style.css' | asset_url | stylesheet_tag }}
+              <a class="t4s-btn t4s-btn-base t4s-btn-style-{{ se_stts.head_btn_style }} t4s-btn-size-{{ se_stts.head_btn_size }} t4s-btn-icon-{{ se_stts.head_btn_icon }} t4s-btn-color-{{ se_stts.head_btn_cl }}{% if se_stts.head_btn_style == 'default' or se_stts.head_btn_style == 'outline' %} t4s-btn-effect-{{ se_stts.head_btn_effect }}{% endif %}" href="{{ view_all_url }}">
+                {{ view_all_label }}
+                {%- if se_stts.head_btn_icon -%}<svg class="t4s-btn-icon" width="14"><use xlink:href="#t4s-icon-btn"></use></svg>{%- endif -%}
+              </a>
+            </div>
+          {%- endif -%}
+        </div>
+      {%- else -%}
+        <div class="swiper collectionsListTabs">
+          <div class="swiper-wrapper">
+            {%- if collection != blank and collection.products_count > 0 -%}
+              {%- for product in collection.products limit: limit -%}
+                <div class="swiper-slide">
+                  {% render 'collections-list-tabs-product', product: product, img_effect: img_effect, b_effect: b_effect, animation_order: forloop.index0 %}
+                </div>
+              {%- endfor -%}
+            {%- else -%}
+              {%- for i in (1..4) -%}
+                <div class="swiper-slide">
+                  {% render 'collections-list-tabs-product', is_placeholder: true, img_effect: img_effect, b_effect: b_effect, animation_order: forloop.index0 %}
+                </div>
+              {%- endfor -%}
+            {%- endif -%}
+          </div>
+        </div>
+        <div class="common-swiper-media">
+          <div class="swiper-pagination common-swiper-pagination collections-list-tabs-pagination"></div>
+        </div>
+        <button type="button" class="swiper-button-prev common-prev collections-list-tabs-prev" aria-label="Previous slide">
+          {% render 'swiper-nav-icon', direction: 'prev', style: 'outline', class: 'logo-list-nav-icon' %}
+        </button>
+        <button type="button" class="swiper-button-next common-next collections-list-tabs-next" aria-label="Next slide">
+          {% render 'swiper-nav-icon', direction: 'next', style: 'outline', class: 'logo-list-nav-icon' %}
+        </button>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+  {{- html_layout[1] -}}
+</div>
+{%- unless is_grid -%}
+
+{%- endunless -%}
+<script>
+window.ManimoodComponents(document.querySelector('.{{ section.id }}'), function () {
+  (function() {
+    var root = document.querySelector('.{{ section.id }}');
+    if (!root) return;
+
+    var isGrid = {{ is_grid | json }};
+
+    var panels = root.querySelectorAll('[data-clt-panel]');
+    var tabs = root.querySelectorAll('[data-clt-tab]');
+
+    function bindTabs(onSwitch) {
+      if (!tabs.length || !panels.length) return;
+      tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          var index = tab.getAttribute('data-clt-index');
+          tabs.forEach(function(t) {
+            var on = t === tab;
+            t.classList.toggle('is-active', on);
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+          });
+          panels.forEach(function(panel) {
+            var on = panel.getAttribute('data-clt-index') === index;
+            panel.classList.toggle('is-active', on);
+            if (on) {
+              panel.removeAttribute('hidden');
+            } else {
+              panel.setAttribute('hidden', '');
+            }
+          });
+          if (typeof onSwitch === 'function') onSwitch();
+          try {
+            tab.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+          } catch (e) {}
+        });
+      });
+    }
+
+    if (isGrid) {
+      bindTabs();
+      return;
+    }
+
+    if (typeof Swiper === 'undefined') return;
+
+    var swiperOpts = {
+      slidesPerView: {{ se_stts.col_mb }},
+      spaceBetween: {{ se_stts.space_h_item_mb }},
+      watchOverflow: true,
+      observer: true,
+      observeParents: true,
+      breakpoints: {
+        768: {
+          slidesPerView: {{ se_stts.col_tb }},
+          spaceBetween: {{ se_stts.space_h_item }}
+        },
+        1025: {
+          slidesPerView: {{ se_stts.col_dk }},
+          spaceBetween: {{ se_stts.space_h_item }}
+        }
+      }
+    };
+
+    var swipers = [];
+
+    if (panels.length) {
+      panels.forEach(function(panel) {
+        var el = panel.querySelector('[data-clt-swiper]');
+        if (!el) return;
+        swipers.push(new Swiper(el, Object.assign({}, swiperOpts, {
+          pagination: {
+            el: panel.querySelector('[data-clt-pagination]'),
+            clickable: true
+          },
+          navigation: {
+            nextEl: panel.querySelector('[data-clt-next]'),
+            prevEl: panel.querySelector('[data-clt-prev]')
+          }
+        })));
+      });
+
+      bindTabs(function() {
+        swipers.forEach(function(s) {
+          if (s && s.update) s.update();
+        });
+      });
+    } else {
+      var el = root.querySelector('.collectionsListTabs');
+      if (!el) return;
+      new Swiper(el, Object.assign({}, swiperOpts, {
+        pagination: {
+          el: root.querySelector('.collections-list-tabs-pagination'),
+          clickable: true
+        },
+        navigation: {
+          nextEl: root.querySelector('.collections-list-tabs-next'),
+          prevEl: root.querySelector('.collections-list-tabs-prev')
+        }
+      }));
+    }
+  })();
+
+}, {{ is_grid | json }} === false);
+</script>
+{% schema %}
+  {
+    "name": "Collection list",
+    "class": "shopify-collections-list-tabs",
+    "tag": "section",
+    "settings": [
+      {"type": "select","id": "layout","label": "layout","default":"t4s-container-wrap",
+        "options": [
+          {"label":"Wrapped container","value": "t4s-container-wrap"},
+          {"label":"Full width","value": "t4s-container-fluid"},
+          {"label":"custom container","value": "custom-container"}
+        ]
+      },
+      {"type": "text","id": "custom_container","label": "custom container","default": "1200px","visible_if": "{{ section.settings.layout == 'custom-container' }}"},
+      {"type": "select","id": "display_layout","label": "Display layout","default": "carousel",
+        "options": [
+          {"value": "carousel","label": "Carousel (swiper)"},
+          {"value": "grid","label": "Grid"}
+        ],
+        "info": "Grid shows 2 rows by default; extra products use View All"
+      },
+
+      {"type": "header","content": "1. Heading options"},
+      {"type": "select","id": "design_heading","label": "+ Design heading","default": "1",
+          "options": [
+              {"value": "1","label": "Design 01"},
+              {"value": "2","label": "Design 02"},
+              {"value": "3","label": "Design 03"},
+              {"value": "4","label": "Design 04"},
+              {"value": "5","label": "Design 05"},
+              {"value": "6","label": "Design 06 (width line-awesome)"},
+              {"value": "7","label": "Design 07"},
+              {"value": "8","label": "Design 08"},
+              {"value": "9","label": "Design 09"},
+              {"value": "10","label": "Design 10"},
+              {"value": "11","label": "Design 11"},
+              {"value": "12","label": "Design 12"},
+              {"value": "13","label": "Design 13"},
+              {"value": "14","label": "Design 14"},
+              {"value": "15","label": "Design 15"},
+              {"value": "16","label": "Design 16"}
+          ]
+      },
+      {"type": "select","id": "heading_align","label": "+ Heading align","default": "t4s-text-start",
+        "options": [
+            {"value": "t4s-text-start","label": "Left"},
+            {"value": "t4s-text-center","label": "Center"},
+            {"value": "t4s-text-end","label": "Right"}
+        ]
+      },
+      {"type": "select","id": "heading_fontf","label": "Font family","default": "inherit",
+        "options": [
+          {"label": "Inherit","value": "inherit"},
+          {"label": "Font family #1","value": "1"},
+          {"label": "Font family #2","value": "2"},
+          {"label": "Font family #3","value": "3"}
+        ]
+      },
+      {"type": "html","id": "top_heading","label": "+ Heading","default": "Explore Best Seller"},
+      {"type": "text","id": "icon_heading","label": "Enter a icon name on heading","info": "Only used for design 6 [LineAwesome]()","default": "las la-gem"},
+      {"type": "textarea","id": "top_subheading","label": "+ Subheading"},
+      {"type": "number","id": "tophead_mb","label": "+ Space bottom (px)","info": "The vertical spacing between heading and content","default": 60},
+
+      {"type": "header","content": "+ Heading button"},
+      {"type": "text","id": "head_btn_label","label": "Button label","default": "View All"},
+      {"type": "url","id": "head_btn_url","label": "Button link","info": "Also used as Grid View All fallback when collection URL is empty"},
+      {"type": "checkbox","id": "head_btn_icon","label": "Enable button icon","default": false},
+      {"type": "select","id": "head_btn_style","label": "Button style","default": "link",
+        "options": [
+          {"label": "Default","value": "default"},
+          {"label": "Outline","value": "outline"},
+          {"label": "Bordered bottom","value": "bordered"},
+          {"label": "Link","value": "link"}
+        ]
+      },
+      {"type": "select","id": "head_btn_size","label": "Button size","default": "medium",
+        "options": [
+          {"label": "Small","value": "small"},
+          {"label": "Medium","value": "medium"},
+          {"label": "Large","value": "large"}
+        ]
+      },
+      {"type": "select","id": "head_btn_cl","label": "Button color","default": "dark",
+        "options": [
+          {"value": "light","label": "Light"},
+          {"value": "dark","label": "Dark"},
+          {"value": "primary","label": "Primary"},
+          {"value": "custom1","label": "Custom color 1"},
+          {"value": "custom2","label": "Custom color 2"}
+        ]
+      },
+      {"type": "select","id": "head_btn_effect","label": "Button hover effect","default": "default","info": "Only working button style default, outline",
+        "options": [
+          {"label": "Default","value": "default"},
+          {"label": "Fade","value": "fade"},
+          {"label": "Rectangle out","value": "rectangle-out"},
+          {"label": "Sweep to right","value": "sweep-to-right"},
+          {"label": "Sweep to left","value": "sweep-to-left"},
+          {"label": "Sweep to bottom","value": "sweep-to-bottom"},
+          {"label": "Sweep to top","value": "sweep-to-top"},
+          {"label": "Shutter out horizontal","value": "shutter-out-horizontal"},
+          {"label": "Outline","value": "outline"},
+          {"label": "Shadow","value": "shadow"}
+        ]
+      },
+      {"type": "checkbox","id": "head_btn_hidden_mb","label": "Hidden head button on Mobile","default": false},
+
+      {"type": "header","content": "2. Category tabs"},
+      {"type": "range","id": "tabs_mb","label": "Tabs space bottom","min": 0,"max": 80,"step": 2,"unit": "px","default": 40},
+      {"type": "color","id": "tab_cl","label": "Tab text color","default": "#666666"},
+      {"type": "color","id": "tab_cl_active","label": "Tab text color (active)","default": "#111111"},
+      {"type": "color","id": "tab_bd","label": "Tab border color","default": "#FFFFFF"},
+      {"type": "color","id": "tab_bd_active","label": "Tab border color (active)","default": "#111111"},
+
+      {"type": "header","content": "3. Collection (fallback without tabs)"},
+      {"type": "collection","id": "collection","label": "Collection","info": "Used only when no category blocks are added"},
+      {"type": "range","id": "limit","label": "Products to show","min": 2,"max": 20,"step": 1,"default": 8,"info": "Grid still caps visible items to 2 rows; extras go to View All"},
+
+      {"type": "header","content": "4. Items options"},
+      {"type": "select","id": "col_dk","label": "Items per row","default": "4",
+        "options": [
+          {"value": "1","label": "1"},
+          {"value": "2","label": "2"},
+          {"value": "3","label": "3"},
+          {"value": "4","label": "4"},
+          {"value": "5","label": "5"},
+          {"value": "6","label": "6"}
+        ]
+      },
+      {"type": "select","id": "col_tb","label": "Items per row (Tablet)","default": "3",
+        "options": [
+          {"value": "1","label": "1"},
+          {"value": "2","label": "2"},
+          {"value": "3","label": "3"},
+          {"value": "4","label": "4"}
+        ]
+      },
+      {"type": "select","id": "col_mb","label": "Items per row (Mobile)","default": "2",
+        "options": [
+          {"value": "1","label": "1"},
+          {"value": "2","label": "2"},
+          {"value": "3","label": "3"}
+        ]
+      },
+      {"type": "range","id": "space_h_item","label": "Horizontal space between items","min": 0,"max": 50,"step": 1,"unit": "px","default": 20},
+      {"type": "range","id": "space_h_item_mb","label": "Horizontal space between items (Mobile)","min": 0,"max": 50,"step": 1,"unit": "px","default": 10},
+      {"type": "range","id": "space_v_item","label": "Vertical space between items (Grid)","min": 0,"max": 50,"step": 1,"unit": "px","default": 20,"visible_if": "{{ section.settings.display_layout == 'grid' }}"},
+      {"type": "range","id": "space_v_item_mb","label": "Vertical space between items Mobile (Grid)","min": 0,"max": 50,"step": 1,"unit": "px","default": 10,"visible_if": "{{ section.settings.display_layout == 'grid' }}"},
+      {"type": "select","id": "img_effect","label": "Image hover effect","info": "Waring: Hovering effect will resize your images","default": "zoom",
+        "options": [
+          {"value": "none","label": "None"},
+          {"value": "zoom","label": "Zoom in"},
+          {"value": "rotate","label": "Rotate"},
+          {"value": "translateToTop","label": "Move to top"},
+          {"value": "translateToRight","label": "Move to right"},
+          {"value": "translateToBottom","label": "Move to bottom"},
+          {"value": "translateToLeft","label": "Move to left"},
+          {"value": "filter","label": "Filter"},
+          {"value": "bounceIn","label": "BounceIn"}
+        ]
+      },
+      {"type": "select","id": "b_effect","label": "Banner effect when hover","default": "none",
+        "options": [
+          {"value": "none","label": "None"},
+          {"value": "border-run","label": "Border run"},
+          {"value": "pervasive-circle","label": "Pervasive circle"},
+          {"value": "plus-zoom-overlay","label": "Plus zoom overlay"},
+          {"value": "dark-overlay","label": "Dark overlay"},
+          {"value": "light-overlay","label": "Light overlay"}
+        ]
+      },
+
+      {"type": "header","content": "Swiper controls","visible_if": "{{ section.settings.display_layout == 'carousel' }}"},
+      {"type": "checkbox","id": "show_pagination_pc","label": "Show pagination (PC)","default": false,"visible_if": "{{ section.settings.display_layout == 'carousel' }}"},
+      {"type": "checkbox","id": "show_navigation_pc","label": "Show navigation arrows (PC)","default": true,"visible_if": "{{ section.settings.display_layout == 'carousel' }}"},
+      {"type": "checkbox","id": "show_pagination_mb","label": "Show pagination (Mobile)","default": true,"visible_if": "{{ section.settings.display_layout == 'carousel' }}"},
+      {"type": "checkbox","id": "show_navigation_mb","label": "Show navigation arrows (Mobile)","default": false,"visible_if": "{{ section.settings.display_layout == 'carousel' }}"},
+      {"type": "color","id": "color_arrow","label": "Navigation arrow color","default": "#171932","visible_if": "{{ section.settings.display_layout == 'carousel' }}"},
+      {"type": "color","id": "color_arrow_hover","label": "Navigation arrow hover color","default": "#00ADEF","visible_if": "{{ section.settings.display_layout == 'carousel' }}"},
+
+      {"type":"color","id":"cl_bg","label":"bg_color","default":"#FFFFFF"},
+      {"type": "color_background","id": "cl_bg_gradient","label": "Background gradient"},
+
+      {"type": "header","content": "+ Design pc options"},
+      {"type": "text","id": "mg","label": "Margin","info":"Margin top, margin right, margin bottom, margin left. If you not use to blank","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd","label": "Padding","info":"Padding top, padding right, padding bottom, padding left. If you not use to blank","default": "70px,0px,70px,0px"},
+
+      {"type": "header","content": "+ Design Tablet Options"},
+      {"type": "text","id": "mg_tb","label": "Margin","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd_tb","label": "Padding","default": "50px,0px,50px,0px"},
+
+      {"type": "header","content": "+ Design mobile options"},
+      {"type": "text","id": "mg_mb","label": "Margin","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd_mb","label": "Padding","default": "30px,0px,30px,0px"}
+    ],
+    "blocks": [
+      {
+        "type": "cat",
+        "name": "Collection",
+        "settings": [
+          {"type": "text","id": "title","label": "Tab title","default": "Category"},
+          {"type": "collection","id": "collection","label": "Collection"},
+          {"type": "checkbox","id": "link_only","label": "Link only (e.g. Shop All)","default": false,"info": "When enabled, this tab opens a URL instead of switching products"},
+          {"type": "url","id": "link","label": "Link","visible_if": "{{ block.settings.link_only == true }}"}
+        ]
+      }
+    ],
+    "presets":[
+      {
+        "name":"Collection list",
+        "category": "LG",
+        "blocks": [
+          {"type": "cat","settings": {"title": "XCOATTIPS® French"}},
+          {"type": "cat","settings": {"title": "XCOATTIPS® KIT"}},
+          {"type": "cat","settings": {"title": "XCOATPRESS"}},
+          {"type": "cat","settings": {"title": "Soft Gel Press Ons"}},
+          {"type": "cat","settings": {"title": "Toe Nails"}},
+          {"type": "cat","settings": {"title": "SHOP ALL","link_only": true}}
+        ]
+      }
+    ]
+  }
+{% endschema %}

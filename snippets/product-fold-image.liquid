@@ -1,0 +1,11 @@
+{% doc %}
+  Renders a Fold image using the theme lazy loader.
+  @param {image} image - The product metafield image.
+{% enddoc %}
+{%- if image != blank -%}
+  <div class="product-fold__media t4s_ratio" style="--aspect-ratioapt: {{ image.aspect_ratio | default: 1 }}">
+    <img class="product-fold__image lazyloadt4s t4s-lz--fadeIn" src="{% render 'img_svg', w: image.width, h: image.height %}" data-src="{{ image | image_url: width: 1 }}" data-widths="[100,144,200,288,320,400,600,800,1000,1200]" data-optimumx="2" data-sizes="auto" width="{{ image.width }}" height="{{ image.height }}" alt="{{ image.alt | escape }}">
+    <span class="lazyloadt4s-loader"></span>
+    <noscript><img class="product-fold__image" src="{{ image | image_url: width: 1000 }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ image.alt | escape }}" loading="lazy"></noscript>
+  </div>
+{%- endif -%}

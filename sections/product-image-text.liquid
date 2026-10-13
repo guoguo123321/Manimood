@@ -1,0 +1,615 @@
+{% liquid
+  assign se_stts = section.settings
+  assign set_blo = section.blocks
+  assign stt_layout = se_stts.layout
+  assign b_effect = se_stts.b_effect
+  assign img_effect = se_stts.img_effect
+  if stt_layout == 't4s-container-wrap'
+    assign html_layout = '<div class="t4s-container">__</div>' | split: '__'
+  elsif stt_layout == 'custom-container'
+    assign html_layout = '<div class="custom-container">__</div>' | split: '__'
+  else
+    assign html_layout = '__' | split: '__'
+  endif
+  assign cols = set_blo | where: 'type', 'col'
+  assign index1 = 0
+  assign index2 = 1
+  assign use_animation = false
+  assign enable_parallax = se_stts.enable_image_parallax
+%}
+{{ 'section.css' | asset_url | stylesheet_tag }}
+{{ 'custom-effect.css' | asset_url | stylesheet_tag }}
+{{ 'general-block.css' | asset_url | stylesheet_tag }}
+{%- if se_stts.layout == 'custom-container' %}
+<style>
+  .{{ section.id }} .custom-container{
+    max-width:{{ se_stts.custom_container }};
+    margin: 0 auto;
+    padding-right: calc(.5* var(--ts-gutter-x, 3rem));
+    padding-left: calc(.5* var(--ts-gutter-x, 3rem));
+  }
+</style>
+{%- endif -%}
+<style>
+  #{{ section.id }} .product-image-text-container{display:grid;grid-template-columns:{{ se_stts.box_layout }};align-items:center;grid-gap:{{ se_stts.box_gap }};max-width:{{ se_stts.box_max_width }};margin:0 auto;}
+  {% for col in cols %}
+    #{{ section.id }} .{{ col.id }}.product-image-text-col{padding:var(--padding-pc);background:var(--item-bg-color);border-radius:var(--item-bdr);height:var(--height);place-content:var(--vertical-layout);}
+  {% endfor %}
+  @media screen and (max-width:1024px){
+    #{{ section.id }} .product-image-text-container{grid-template-columns:auto;grid-template-areas:"a""b";justify-content:center;}
+    {% for col in cols %}
+      #{{ section.id }} .{{ col.id }}.product-image-text-col{padding:var(--padding-mb);}
+    {% endfor %}
+  }
+  @media screen and (max-width:768px){
+    #{{ section.id }} .product-image-text-container{grid-gap:0;}
+  }
+  {% if se_stts.enable_inner_box %}
+    #{{ section.id }} .product-image-text-container{
+      {% if se_stts.inner_box_bg != blank %}background:{{ se_stts.inner_box_bg }};{% endif %}
+      border-radius:{{ se_stts.inner_box_bdr }}px;
+      padding:{{ se_stts.inner_box_pd }}px;
+    }
+  {% endif %}
+</style>
+<div class="{{ section.id }} product-image-text-box t4s-section-inner" {% render 'section_style', se_stts: se_stts -%} id="{{ section.id }}">
+  {{- html_layout[0] -}}
+  {%- render 'section_tophead', se_stts: se_stts -%}
+  <div class="product-image-text-container{% if se_stts.enable_inner_box %} product-image-text-container--inner-box{% endif %}">
+    {% for col in cols offset: index1 %}
+      {%- assign index1 = index1 | plus: 1 -%}
+      <div class="{{ col.id }} product-image-text-col product-image-text-col--{{ col.settings.layout }} product-image-text-col--img-{{ col.settings.position_image }}" style="--padding-pc:{{ col.settings.padding }};--padding-mb:{{ col.settings.padding_mb }};--item-bg-color:{{ col.settings.item_bg_color }};--item-bdr:{{ col.settings.item_bdr }}px;--height:{{ col.settings.height }};--vertical-layout:{{ col.settings.vertical_layout }}" {{ col.shopify_attributes }}>
+        {% for block in section.blocks offset: index2 %}
+          {%- assign index2 = index2 | plus: 1 -%}
+          {% assign blo_setts = block.settings %}
+          {% if block.type != 'col' %}
+            {% case block.type %}
+              {% when 'image' %}
+                {%- liquid
+                  assign pit_max_w = '100%'
+                  assign pit_max_w_mb = '100%'
+                  if blo_setts.img_width > 0
+                    assign pit_max_w = blo_setts.img_width | append: 'px'
+                  endif
+                  if blo_setts.img_width_mb > 0
+                    assign pit_max_w_mb = blo_setts.img_width_mb | append: 'px'
+                  endif
+                -%}
+                <div class="product-image-text-media{% if enable_parallax %} product-image-text-media--parallax{% endif %} t4s-eff t4s-eff-{{ b_effect }} t4s-eff-img-{{ img_effect }}" style="position:{{ blo_setts.position_select }};top:{{ blo_setts.top }};{% if enable_parallax and blo_setts.image_child != blank %}--pit-ar:{{ blo_setts.image_child.aspect_ratio }};--pit-max-w:{{ pit_max_w }};--pit-max-w-mb:{{ pit_max_w_mb }};{% endif %}" {{ block.shopify_attributes }}>
+                  {%- if enable_parallax -%}
+                    <div class="product-image-text-parallax" data-product-image-parallax>
+                  {%- endif -%}
+                  {%- if blo_setts.image_child != blank -%}
+                    <div class="t4s-justify-content-{{ blo_setts.img_layout }} t4s-img-child t4s-pr t4s-hidden-mobile-{{ blo_setts.hidden_mobile }}" {%- render 'bk_cus_style', type: 'image', bk_stts: blo_setts -%}>
+                      <img data-maxw="{{ blo_setts.img_width_mb }}" data-maxw-md="{{ blo_setts.img_width }}" data-maxw-lg="{{ blo_setts.img_width }}" {% if blo_setts.image_child.presentation.focal_point != '50.0% 50.0%' %} style="object-position: {{ blo_setts.image_child.presentation.focal_point }}"{% endif %} class="lazyloadt4s t4s-lz--fadeIn t4s-obj-eff" data-src="{{ blo_setts.image_child | image_url: width: 1 }}" data-widths="[100,200,300,400,500,600,700,800,900,1000,1200,1400]" data-optimumx="2" data-sizes="auto" src="{% render 'img_svg', w: blo_setts.image_child.width, h: blo_setts.image_child.height %}" width="{{ blo_setts.image_child.width }}" height="{{ blo_setts.image_child.height }}" alt="{{ blo_setts.image_child_alt | strip | default: blo_setts.image_child.alt | escape }}">
+                      <span class="lazyloadt4s-loader"></span>
+                    </div>
+                  {%- else -%}
+                    <div class="t4s_ratio t4s_ratio4_3">
+                      {{ 'lifestyle-1' | placeholder_svg_tag: 't4s-placeholder-svg t4s-obj-eff' }}
+                    </div>
+                  {%- endif -%}
+                  {%- if enable_parallax -%}
+                    </div>
+                  {%- endif -%}
+                </div>
+
+              {% when 'custom_text' %}
+                <{{ blo_setts.tag }}{% unless enable_parallax %} hdt-reveal="slide-in"{% endunless %} data-lh="{{ blo_setts.text_lh_mb }}" data-lh-md="{{ blo_setts.text_lh }}" data-lh-lg="{{ blo_setts.text_lh }}" class="product-image-text-text t4s-text-display-{{ blo_setts.text_display | default: 'block' }} t4s-animation-{{ blo_setts.animation }} t4s-text-bl t4s-fnt-fm-{{ blo_setts.fontf }} t4s-font-italic-{{ blo_setts.font_italic }} t4s-hidden-mobile-{{ blo_setts.hidden_mobile }} t4s-br-mb-{{ blo_setts.remove_br_tag }} t4s-text-shadow-{{ blo_setts.text_shadow }}" id="b_{{ block.id }}" {{ block.shopify_attributes }} {%- render 'bk_cus_style', type: 'custom_text', bk_stts: blo_setts -%}>{{ blo_setts.text }}</{{ blo_setts.tag }}>
+
+              {% when 'custom_button' %}
+                {%- if blo_setts.button_link != blank and blo_setts.button_text != blank -%}
+                  {%- if blo_setts.animation != 'none' -%}
+                    {%- assign use_animation = true -%}
+                  {%- endif -%}
+                  <a href="{{ blo_setts.button_link }}" target="{{ blo_setts.target_link }}" class="product-image-text-button common-pill-btn custom-link t4s-btn-display-{{ blo_setts.button_display | default: 'inline' }} t4s-animation-{{ blo_setts.animation }} t4s-hidden-mobile-{{ blo_setts.hidden_mobile }}" id="b_{{ block.id }}" {{ block.shopify_attributes }} {%- render 'bk_cus_style', type: 'custom_button', bk_stts: blo_setts -%}>
+                    <span class="common-pill-btn__text">{{ blo_setts.button_text }}</span>
+                    {%- if blo_setts.button_icon -%}
+                      {% render 'pill-btn-arrow' %}
+                    {%- endif -%}
+                  </a>
+                {%- endif -%}
+            {% endcase %}
+          {% else %}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  {{- html_layout[1] -}}
+</div>
+{%- if use_animation -%}
+  <link href="{{ 't4s-animation.css' | asset_url }}" rel="stylesheet" media="print" onload="this.media='all'">
+{%- endif -%}
+{%- if enable_parallax -%}
+<script>
+  (function () {
+    var SELECTOR = '[data-product-image-parallax]';
+
+    function debounce(fn, wait) {
+      var t;
+      return function () {
+        var ctx = this, args = arguments;
+        clearTimeout(t);
+        t = setTimeout(function () { fn.apply(ctx, args); }, wait);
+      };
+    }
+
+    function bind(el) {
+      if (el.dataset.parallaxBound === '7') return;
+      el.dataset.parallaxBound = '7';
+      if (!('IntersectionObserver' in window)) return;
+
+      var parent = el.parentElement;
+      if (!parent) return;
+      var primed = false;
+
+      /* Mirror shangmengnails.com xParallax */
+      var parallax = debounce(function () {
+        var rect = el.getBoundingClientRect();
+        var parentH = parent.offsetHeight || 1;
+        var speed = window.innerHeight / parentH * 20;
+        var shiftDistance = (rect.top - window.innerHeight) / speed;
+        var maxShift = parentH / 11;
+        if (shiftDistance < -maxShift) shiftDistance = -maxShift;
+        if (shiftDistance > maxShift) shiftDistance = maxShift;
+
+        /* First paint: set position without transition to avoid a big jump */
+        if (!primed) {
+          el.style.transition = 'none';
+          el.style.transform = 'translate3d(0, ' + shiftDistance + 'px, 0)';
+          void el.offsetHeight;
+          el.style.transition = '';
+          primed = true;
+          return;
+        }
+        el.style.transform = 'translate3d(0, ' + shiftDistance + 'px, 0)';
+      }, 10);
+
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            window.addEventListener('scroll', parallax, { passive: true, capture: false });
+            parallax();
+          } else {
+            window.removeEventListener('scroll', parallax, { passive: true, capture: false });
+          }
+        });
+      }, { root: null, rootMargin: '0px 0px', threshold: 0 });
+
+      observer.observe(el);
+    }
+
+    function init() {
+      document.querySelectorAll(SELECTOR).forEach(bind);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+    document.addEventListener('shopify:section:load', init);
+  })();
+</script>
+{%- endif -%}
+{% schema %}
+  {
+    "name": "Product Image Text",
+    "class": "shopify-product-image-text",
+    "tag": "section",
+    "settings": [
+      {"type": "select","id": "layout","label": "layout","default":"t4s-container-wrap",
+        "options": [
+          {"label":"Wrapped container","value": "t4s-container-wrap"},
+          {"label":"Full width","value": "t4s-container-fluid"},
+          {"label":"custom container","value": "custom-container"}
+        ]
+      },
+      {"type": "text","id": "custom_container","label": "custom container","default": "1200px","visible_if": "{{ section.settings.layout == 'custom-container' }}"},
+
+      {"type": "header","content": "1. Heading options"},
+      {"type": "select","id": "design_heading","label": "+ Design heading","default": "1",
+          "options": [
+              {"value": "1","label": "Design 01"},
+              {"value": "2","label": "Design 02"},
+              {"value": "3","label": "Design 03"},
+              {"value": "4","label": "Design 04"},
+              {"value": "5","label": "Design 05"},
+              {"value": "6","label": "Design 06 (width line-awesome)"},
+              {"value": "7","label": "Design 07"},
+              {"value": "8","label": "Design 08"},
+              {"value": "9","label": "Design 09"},
+              {"value": "10","label": "Design 10"},
+              {"value": "11","label": "Design 11"},
+              {"value": "12","label": "Design 12"},
+              {"value": "13","label": "Design 13"},
+              {"value": "14","label": "Design 14"},
+              {"value": "15","label": "Design 15"},
+              {"value": "16","label": "Design 16"}
+          ]
+      },
+      {"type": "select","id": "heading_align","label": "+ Heading align","default": "t4s-text-center",
+        "options": [
+            {"value": "t4s-text-start","label": "Left"},
+            {"value": "t4s-text-center","label": "Center"},
+            {"value": "t4s-text-end","label": "Right"}
+        ]
+      },
+      {"type": "select","id": "heading_fontf","label": "Font family","default": "4",
+        "options": [
+          {"label": "Inherit","value": "inherit"},
+          {"label": "Font family #1","value": "1"},
+          {"label": "Font family #2","value": "2"},
+          {"label": "Font family #3","value": "3"},
+          {"label": "Font family #4(Butler-Bold)","value": "4"}
+        ]
+      },
+      {"type": "html","id": "top_heading","label": "+ Heading"},
+      {"type": "text","id": "icon_heading","label": "Enter a icon name on heading","info": "Only used for design 6 [LineAwesome]()","default": "las la-gem"},
+      {"type": "textarea","id": "top_subheading","label": "+ Subheading"},
+      {"type": "number","id": "tophead_mb","label": "+ Space bottom (px)","info": "The vertical spacing between heading and content","default": 40},
+
+      {"type": "header","content": "+ Heading button"},
+      {"type": "text","id": "head_btn_label","label": "Button label"},
+      {"type": "url","id": "head_btn_url","label": "Button link"},
+      {"type": "checkbox","id": "head_btn_icon","label": "Enable button icon","default": false},
+      {"type": "select","id": "head_btn_style","label": "Button style","default": "link",
+        "options": [
+          {"label": "Default","value": "default"},
+          {"label": "Outline","value": "outline"},
+          {"label": "Bordered bottom","value": "bordered"},
+          {"label": "Link","value": "link"}
+        ]
+      },
+      {"type": "select","id": "head_btn_size","label": "Button size","default": "medium",
+        "options": [
+          {"label": "Small","value": "small"},
+          {"label": "Medium","value": "medium"},
+          {"label": "Large","value": "large"}
+        ]
+      },
+      {"type": "select","id": "head_btn_cl","label": "Button color","default": "dark",
+        "options": [
+          {"value": "light","label": "Light"},
+          {"value": "dark","label": "Dark"},
+          {"value": "primary","label": "Primary"},
+          {"value": "custom1","label": "Custom color 1"},
+          {"value": "custom2","label": "Custom color 2"}
+        ]
+      },
+      {"type": "select","id": "head_btn_effect","label": "Button hover effect","default": "default","info": "Only working button style default, outline",
+        "options": [
+          {"label": "Default","value": "default"},
+          {"label": "Fade","value": "fade"},
+          {"label": "Rectangle out","value": "rectangle-out"},
+          {"label": "Sweep to right","value": "sweep-to-right"},
+          {"label": "Sweep to left","value": "sweep-to-left"},
+          {"label": "Sweep to bottom","value": "sweep-to-bottom"},
+          {"label": "Sweep to top","value": "sweep-to-top"},
+          {"label": "Shutter out horizontal","value": "shutter-out-horizontal"},
+          {"label": "Outline","value": "outline"},
+          {"label": "Shadow","value": "shadow"}
+        ]
+      },
+      {"type": "checkbox","id": "head_btn_hidden_mb","label": "Hidden head button on Mobile","default": false},
+
+      {"type": "header","content": "Image options"},
+      {"type": "checkbox","id": "enable_image_parallax","label": "Enable image scroll parallax","info": "Image shifts slightly on scroll (like Shangmeng weekday art)","default": true},
+      {"type": "select","id": "img_effect","label": "Image hover effect","info": "Waring: Hovering effect will resize your images","default": "none",
+        "options": [
+          {"value": "none","label": "None"},
+          {"value": "zoom","label": "Zoom in"},
+          {"value": "rotate","label": "Rotate"},
+          {"value": "translateToTop","label": "Move to top"},
+          {"value": "translateToRight","label": "Move to right"},
+          {"value": "translateToBottom","label": "Move to bottom"},
+          {"value": "translateToLeft","label": "Move to left"},
+          {"value": "filter","label": "Filter"},
+          {"value": "bounceIn","label": "BounceIn"}
+        ]
+      },
+      {"type": "select","id": "b_effect","label": "Banner effect when hover","default": "none",
+        "options": [
+          {"value": "none","label": "None"},
+          {"value": "border-run","label": "Border run"},
+          {"value": "pervasive-circle","label": "Pervasive circle"},
+          {"value": "plus-zoom-overlay","label": "Plus zoom overlay"},
+          {"value": "dark-overlay","label": "Dark overlay"},
+          {"value": "light-overlay","label": "Light overlay"}
+        ]
+      },
+
+      {"type":"color","id":"cl_bg","label":"bg_color","default":"#F7F7F7"},
+      {"type": "color_background","id": "cl_bg_gradient","label": "Background gradient"},
+
+      {"type": "header","content": "+ Inner box"},
+      {"type": "checkbox","id": "enable_inner_box","label": "Enable inner box","default": false},
+      {"type": "color","id": "inner_box_bg","label": "Inner background","visible_if": "{{ section.settings.enable_inner_box }}"},
+      {"type": "range","id": "inner_box_bdr","label": "Border radius","default": 12,"min": 0,"max": 50,"step": 1,"unit": "px","visible_if": "{{ section.settings.enable_inner_box }}"},
+      {"type": "range","id": "inner_box_pd","label": "Inner padding","default": 10,"min": 0,"max": 100,"step": 1,"unit": "px","visible_if": "{{ section.settings.enable_inner_box }}"},
+
+      {"type": "header","content": "+ Design pc options"},
+      {"type": "text","id": "mg","label": "Margin","info":"Margin top, margin right, margin bottom, margin left. If you not use to blank","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd","label": "Padding","info":"Padding top, padding right, padding bottom, padding left. If you not use to blank","default": "80px,0px,80px,0px"},
+
+      {"type": "header","content": "+ Design Tablet Options"},
+      {"type": "text","id": "mg_tb","label": "Margin","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd_tb","label": "Padding","default": "80px,0px,80px,0px"},
+
+      {"type": "header","content": "+ Design mobile options"},
+      {"type": "text","id": "mg_mb","label": "Margin","default": "0px,0px,0px,0px"},
+      {"type": "text","id": "pd_mb","label": "Padding","default": "80px,0px,80px,0px"},
+
+      {"type": "header","content": "+ Design box"},
+      {"type":"text","id":"box_layout","label":"layout","default":"45.0704% 1fr"},
+      {"type":"text","id":"box_gap","label":"gap","default":"0px"},
+      {"type":"text","id":"box_max_width","label":"max width","default":"100%"}
+    ],
+    "blocks":[
+      {
+        "type":"col",
+        "name":"col",
+        "settings":[
+          {"type": "header","content": "+ Position image on Tablet(mobile)"},
+          {"type": "select","id": "position_image","label": "Position image","default":"default",
+            "options": [
+              {"label":"Default","value": "default"},
+              {"label":"top","value": "top"},
+              {"label":"bottom","value": "bottom"}
+            ]
+          },
+          {"type": "select","id": "layout","label": "layout","default":"none","info": "Text Align",
+            "options": [
+              {"label":"left","value": "start"},
+              {"label":"center","value": "center"},
+              {"label":"right","value": "end"},
+              {"label":"none","value": "none"}
+            ]
+          },
+          {"type": "text","id": "padding","label": "padding","default":"0"},
+          {"type": "text","id": "padding_mb","label": "padding(mobile)","default":"0"},
+          {"type": "color","id": "item_bg_color","label": "Background color"},
+          {"type": "range","id": "item_bdr","label": "Border radius","default": 0,"min": 0,"max": 50,"step": 1,"unit": "px"},
+          {"type": "text","id": "height","label": "height"},
+          {"type": "select","id": "vertical_layout","label": "Vertical layout","default":"none","info": "Vertical Align",
+            "options": [
+              {"label":"start","value": "flex-start"},
+              {"label":"center","value": "center"},
+              {"label":"end","value": "flex-end"},
+              {"label":"none","value": "none"}
+            ]
+          }
+        ]
+      },
+      {
+        "type": "image",
+        "name": "Image (Child)",
+        "settings": [
+          {"type": "select","id": "img_layout","label": "image layout","default":"center",
+            "options": [
+              {"label":"left","value": "start"},
+              {"label":"center","value": "center"},
+              {"label":"right","value": "end"}
+            ]
+          },
+          {"type": "image_picker","id": "image_child","label": "Image (Child)"},
+          {"type":"text","id":"image_child_alt","label":"Image alt text","info":"Leave blank to use the original image alt text."},
+          {"type": "number","id": "img_width","label": "Image width (Unit: px)","info": "Set 0 to use width default of image","default": 0},
+          {"type": "number","id": "img_width_mb","label": "Image width on mobile (Unit: px)","info": "Set 0 to use width default of image","default": 0},
+          {"type": "checkbox","id": "hidden_mobile","label": "Hidden on mobile","default": false},
+          {"type": "text","id": "mgb","label": "Margin bottom (Unit: px)","default": "0"},
+          {"type": "text","id": "mgb_mb","label": "Margin bottom on mobile(Unit: px)","default": "0"},
+          {"type": "select","id": "position_select","label": "position select","default":"relative",
+            "options": [
+              {"label":"relative","value": "relative"},
+              {"label":"absolute","value": "absolute"}
+            ]
+          },
+          {"type": "text","id": "top","label": "top(position)","default": "0"}
+        ]
+      },
+      {
+        "type": "custom_text",
+        "name": "Text",
+        "settings": [
+          {
+            "type": "textarea",
+            "id": "text",
+            "label": "Input text",
+            "default": "Text",
+            "info": "If you want to line break, please add a <br> tag in the text"
+          },
+          {"type": "select","id": "text_display","label": "Text display","default": "block",
+            "options": [
+              {"value": "inline","label": "Inline"},
+              {"value": "block","label": "Own line"}
+            ]
+          },
+          {"type": "header","content": "+ Box Background"},
+          {"type": "checkbox","id": "enable_box_bg","label": "Enable box background","default": false},
+          {"type": "color","id": "box_bg","label": "Box background"},
+          {"type": "range","id": "box_bdr","label": "Border radius","default": 2,"min": 0,"max": 50,"step": 1,"unit": "px"},
+          {"type": "text","id": "box_pd","label": "Inner padding"},    
+          {"type": "header","content": "End + Box Background"},
+          {
+            "type": "checkbox",
+            "id": "remove_br_tag",
+            "label": "Remove <br> tag on mobile",
+            "default": false
+          },
+          {
+            "type": "select",
+            "id": "tag",
+            "label": "Html tag",
+            "default": "p",
+            "options": [
+              {"value": "h2","label": "H2"},
+              {"value": "h3","label": "H3"},
+              {"value": "h4","label": "H4"},
+              {"value": "h5","label": "H5"},
+              {"value": "h6","label": "H6"},
+              {"value": "p","label": "P"},
+              {"value": "div","label": "DIV"}
+            ]
+          },
+          {
+            "type": "select",
+            "id": "fontf",
+            "default": "inherit",
+            "label": "Font family",
+            "options": [
+              {"label": "Inherit","value": "inherit"},
+              {"label": "Font Family #1","value": "1"},
+              {"label": "Font Family #2","value": "2"},
+              {"label": "Font Family #3","value": "3"},
+              {"label": "Font Family #4(Butler-Bold)","value": "4"}
+            ]
+          },
+          {"type": "color","id": "text_cl","label": "Color text","default": "#171932"},
+          {"type": "range","id": "text_fs","label": "Font size","max": 100,"min": 10,"step": 1,"unit": "px","default": 16},
+          {"type": "range","id": "text_lh","label": "Line height","max": 100,"min": 0,"step": 1,"default": 0,"unit": "px","info": "Set is '0' use to default"},
+          {"type": "range","id": "text_fw","label": "Font weight","min": 100,"max": 900,"step": 100,"default": 400},
+          {"type": "number","id": "text_ls","label": "Letter spacing (in pixel)"},
+          {"type": "number","id": "text_mgb","label": "Margin bottom","default": 15},
+          {"type": "checkbox","id": "font_italic","label": "Enable font style italic","default": false},
+          {"type": "checkbox","id": "text_shadow","label": "Enable text shadow","default": false},
+          {"type": "header","content": "===== Option mobile ====="},
+          {"type": "checkbox","id": "hidden_mobile","label": "Hidden on mobile","default": false},
+          {"type": "range","id": "text_fs_mb","label": "Font size (Mobile)","max": 60,"min": 10,"step": 1,"unit": "px","default": 16},
+          {"type": "range","id": "text_lh_mb","label": "Line height (Mobile)","max": 70,"min": 0,"step": 1,"default": 0,"unit": "px","info": "Set is '0' use to default"},
+          {"type": "number","id": "text_ls_mb","label": "Letter spacing (Mobile)"},
+          {"type": "number","id": "text_mgb_mobile","label": "Margin bottom (Mobile)","default": 10}
+        ]
+      },
+      {
+        "type": "custom_button",
+        "name": "Button",
+        "settings": [
+          {"type": "text","id": "button_text","label": "Button label","default": "Button label","info": "If set blank will not show"},
+          {"type": "url","id": "button_link","label": "Button link","info": "If set blank will not show"},
+          {"type": "select","id": "target_link","label": "Open link in","default": "_self",
+            "options": [
+              {"value": "_self","label": "Current window"},
+              {"value": "_blank","label": "New window"}
+            ]
+          },
+          {"type": "select","id": "fontf","default": "inherit","label": "Font family",
+            "options": [
+              {"label": "Inherit","value": "inherit"},
+              {"label": "Font Family #1","value": "1"},
+              {"label": "Font Family #2","value": "2"},
+              {"label": "Font Family #3","value": "3"}
+            ]
+          },
+          {"type": "checkbox","id": "button_icon","label": "Enable button icon","default": true},
+          {"type": "range","id": "button_icon_w","label": "Button icon width","min": 0,"max": 50,"step": 1,"unit": "px","default": 0},
+          {"type": "select","id": "button_style","label": "Button style",
+            "options": [
+              {"label": "Default","value": "default"},
+              {"label": "Outline","value": "outline"},
+              {"label": "Bordered bottom","value": "bordered"},
+              {"label": "Link","value": "link"}
+            ]
+          },
+          {"type": "select","id": "button_effect","label": "Button hover effect","default": "default","info": "Only working button style default, outline",
+            "options": [
+              {"label": "Default","value": "default"},
+              {"label": "Fade","value": "fade"},
+              {"label": "Rectangle out","value": "rectangle-out"},
+              {"label": "Sweep to right","value": "sweep-to-right"},
+              {"label": "Sweep to left","value": "sweep-to-left"},
+              {"label": "Sweep to bottom","value": "sweep-to-bottom"},
+              {"label": "Sweep to top","value": "sweep-to-top"},
+              {"label": "Shutter out horizontal","value": "shutter-out-horizontal"},
+              {"label": "Outline","value": "outline"},
+              {"label": "Shadow","value": "shadow"}
+            ]
+          },
+          {"type": "color","id": "pri_cl","label": "Primary color","default": "#222"},
+          {"type": "range","id": "pri_cl_opacity","label": "Primary color opacity","default": 100,"min": 0,"max": 100,"step": 1,"unit": "%"},
+          {"type": "select","id": "button_display","label": "Button display","default": "inline",
+            "options": [
+              {"value": "inline","label": "Inline"},
+              {"value": "block","label": "Own line"}
+            ]
+          },
+          {"type": "color","id": "second_cl","label": "Secondary color","info": "Only working button style default","default": "#fff"},
+          {"type": "color","id": "pri_cl_hover","label": "Primary color hover","default": "#56cfe1"},
+          {"type": "color","id": "second_cl_hover","label": "Secondary color hover","info": "Only working button style default, outline","default": "#fff"},
+          {"type": "range","id": "fsbutton","label": "Font size","max": 50,"min": 10,"step": 1,"unit": "px","default": 14},
+          {"type": "range","id": "fwbutton","label": "Font weight","min": 100,"max": 900,"step": 100,"default": 400},
+          {"type": "range","id": "button_ls","label": "Letter spacing","min": 0,"max": 10,"step": 0.1,"unit": "px","default": 0},
+          {"type": "range","id": "button_mh","label": "Min height","min": 30,"max": 80,"step": 1,"unit": "px","default": 42,"info": "Only working button style default, outline"},
+          {"type": "range","id": "button_bdr","label": "Border radius","min": 0,"max": 40,"step": 1,"unit": "px","default": 0,"info": "Only working button style default, outline"},
+          {"type": "range","id": "button_pd_lr","label": "Padding left/right","min": 0,"max": 100,"step": 1,"unit": "px","default": 20,"info": "Only working button style default, outline"},
+          {"type": "number","id": "button_mgb","label": "Margin bottom","default": 0},
+          {"type": "number","id": "button_mgl","label": "Margin left","default": 0},
+          {"type": "header","content": "+ Option Mobile"},
+          {"type": "checkbox","id": "hidden_mobile","label": "Hidden on mobile","default": false},
+          {"type": "range","id": "button_icon_w_mb","label": "Button icon width (Mobile)","min": 0,"max": 50,"step": 1,"unit": "px","default": 0},
+          {"type": "range","id": "fsbutton_mb","label": "Font size (Mobile)","max": 50,"min": 0,"step": 1,"unit": "px","default": 10},
+          {"type": "range","id": "button_mh_mb","label": "Min height (Mobile)","min": 10,"max": 50,"step": 1,"unit": "px","default": 36,"info": "Only working button style default, outline"},
+          {"type": "range","id": "button_pd_lr_mb","label": "Padding left/right (Mobile)","min": 0,"max": 100,"step": 1,"unit": "px","default": 15,"info": "Only working button style default, outline"},
+          {"type": "range","id": "button_ls_mb","label": "Letter spacing (Mobile)","min": 0,"max": 10,"step": 0.1,"unit": "px","default": 0},
+          {"type": "number","id": "button_mgb_mb","label": "Margin bottom (Mobile)","default": 0},
+          {"type": "number","id": "button_mgl_mb","label": "Margin left (Mobile)","default": 0},
+          {"type": "paragraph","content": "————————————————"},
+          {"type": "select","id": "animation","label": "Animation","default": "none",
+            "options": [
+              {"label": "None","value": "none"},
+              {"label": "fadeIn","value": "fadeIn"},
+              {"label": "fadeInDown","value": "fadeInDown"},
+              {"label": "fadeInDownBig","value": "fadeInDownBig"},
+              {"label": "fadeInLeft","value": "fadeInLeft"},
+              {"label": "fadeInLeftBig","value": "fadeInLeftBig"},
+              {"label": "fadeInRight","value": "fadeInRight"},
+              {"label": "fadeInRightBig","value": "fadeInRightBig"},
+              {"label": "fadeInUp","value": "fadeInUp"},
+              {"label": "fadeInUpBig","value": "fadeInUpBig"},
+              {"label": "fadeInTopLeft","value": "fadeInTopLeft"},
+              {"label": "fadeInTopRight","value": "fadeInTopRight"},
+              {"label": "fadeInBottomLeft","value": "fadeInBottomLeft"},
+              {"label": "fadeInBottomRight","value": "fadeInBottomRight"},
+              {"label": "bounceIn","value": "bounceIn"},
+              {"label": "bounceInDown","value": "bounceInDown"},
+              {"label": "bounceInLeft","value": "bounceInLeft"},
+              {"label": "bounceInRight","value": "bounceInRight"},
+              {"label": "bounceInUp","value": "bounceInUp"},
+              {"label": "zoomIn","value": "zoomIn"},
+              {"label": "zoomInDown","value": "zoomInDown"},
+              {"label": "zoomInLeft","value": "zoomInLeft"},
+              {"label": "zoomInRight","value": "zoomInRight"},
+              {"label": "zoomInUp","value": "zoomInUp"},
+              {"label": "slideInDown","value": "slideInDown"},
+              {"label": "slideInLeft","value": "slideInLeft"},
+              {"label": "slideInRight","value": "slideInRight"},
+              {"label": "slideInUp","value": "slideInUp"},
+              {"label": "lightSpeedInRight","value": "lightSpeedInRight"},
+              {"label": "lightSpeedInLeft","value": "lightSpeedInLeft"},
+              {"label": "lightSpeedOutRight","value": "lightSpeedOutRight"},
+              {"label": "lightSpeedOutLeft","value": "lightSpeedOutLeft"},
+              {"label": "jello","value": "jello"},
+              {"label": "tada","value": "tada"},
+              {"label": "pulse","value": "pulse"}
+            ]
+          }
+        ]
+      }
+    ],
+    "presets":[
+      {
+        "name":"Product Image Text",
+        "category": "LG",
+        "blocks":[
+          {"type": "col"},
+          {"type": "image"},
+          {"type": "col","settings":{"padding":"0 0 0 80px","padding_mb":"20px 0 0"}},
+          {"type": "custom_text","settings":{"text":"Avoid Brittle Clay That<br> Hardens In Minutes","tag":"h3","fontf":"4","text_fs":32,"text_fw":500,"text_mgb":24,"text_fs_mb":24,"remove_br_tag":true}},
+          {"type": "custom_text","settings":{"text":"Stay away from cheap low-grade clay that hardens rapidly once exposed to air, crumbles apart while shaping or sticks heavily all over hands, clothes and household furniture. Inferior clay often carries strange pungent smells and brings hidden safety risks for young kids.","tag":"div","text_fs":14,"text_fw":400,"text_mgb":0,"text_fs_mb":14}}
+        ]
+      }
+    ]
+  }
+{% endschema %}
